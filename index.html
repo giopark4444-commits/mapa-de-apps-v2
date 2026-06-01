@@ -129,6 +129,19 @@
   .cost th,.cost td{border:1px solid var(--line);padding:9px 11px;text-align:left} .cost th{background:var(--panel-2);color:var(--ink);font-size:12px}
   .cost td:last-child{color:var(--ok);font-weight:600;white-space:nowrap} .cost .tot td{background:rgba(124,108,255,.08);font-weight:700;color:#fff}
   .callout{border-left:2px solid var(--brand);background:var(--accent-soft);padding:13px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.6px;color:var(--ink-soft)}
+  .startpath{cursor:pointer;transition:.15s;position:relative}
+  .startpath:hover{border-color:rgba(155,140,255,.45);transform:translateY(-2px)}
+  .startpath .sp-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft);border:1px solid rgba(155,140,255,.25);color:var(--brand);margin-bottom:10px}
+  .startpath .sp-ic .i{width:18px;height:18px}
+  .startpath .sp-go{display:inline-block;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--brand-2)}
+  .nextstep{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--brand);border-radius:12px;padding:16px 18px;margin-top:22px}
+  .nextstep .ns-ic{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;background:var(--accent-soft);border:1px solid rgba(155,140,255,.25);color:var(--brand)}
+  .nextstep .ns-ic .i{width:18px;height:18px}
+  .nextstep .ns-lbl{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-dim)}
+  .nextstep h3{margin:3px 0 4px} .nextstep p{font-size:13px;margin:0}
+  .nextstep .ns-act{margin-top:11px;display:flex;gap:9px;flex-wrap:wrap}
+  .nextstep .miniprog{margin-top:11px}
+  .nextstep .miniprog .progwrap{margin:5px 0 0}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ok);color:#04210f;font-weight:700;font-size:13px;padding:10px 18px;border-radius:999px;transition:.25s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:50}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .out{display:none}.out.show{display:block;animation:fade .4s}
@@ -250,18 +263,40 @@
     <section class="page on" id="inicio">
       <span class="eyebrow">Bienvenido</span>
       <h1>De la idea a la app, sin perderte en el camino.</h1>
-      <p class="lead">Lleva <b>varios proyectos a la vez</b>, cada uno con su propio mapa, ranking de tecnologías, costos y un <b>roadmap que se adapta a tu tipo de app</b> con explicaciones y ejemplos en cada paso.</p>
-      <div class="grid g3" style="margin-top:24px">
-        <div class="card"><div class="pill">Paso 1</div><h3 style="margin-top:12px">Crea un proyecto</h3><p style="font-size:13.5px">Uno por cada idea. Cambia entre ellos cuando quieras.</p></div>
-        <div class="card"><div class="pill">Paso 2</div><h3 style="margin-top:12px">Genera su mapa</h3><p style="font-size:13.5px">Resumen técnico, <b>ranking de tecnologías</b> con el porqué y <b>costos estimados</b>.</p></div>
-        <div class="card"><div class="pill">Paso 3</div><h3 style="margin-top:12px">Sigue su roadmap</h3><p style="font-size:13.5px">El roadmap se <b>adapta a tu app</b>, con tips, herramientas y ejemplos por paso.</p></div>
+      <p class="lead">Una guía para personas con <b>ideas</b>, no con conocimientos de código. Aquí planeas, sigues el paso a paso y aprendes a dirigir a Claude para construir tu app.</p>
+
+      <!-- SIGUIENTE PASO dinámico: se llena según tu proyecto activo -->
+      <div id="nextStepCard"></div>
+
+      <h2 style="margin-top:30px">¿Por dónde empiezo?</h2>
+      <p style="font-size:13.5px;margin-top:-6px">Elige según tu situación. Puedes cambiar entre todo cuando quieras.</p>
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card startpath" data-go="proyecto">
+          <div class="sp-ic">${''}<span class="i"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4" opacity=".55"/></svg></span></div>
+          <h3>Tengo una idea nueva</h3>
+          <p style="font-size:13.3px">Descríbela en palabras simples y te doy el stack recomendado, los costos y el prompt para arrancar con Claude.</p>
+          <span class="sp-go">Ir a Proyecto actual →</span>
+        </div>
+        <div class="card startpath" data-go="analizar">
+          <div class="sp-ic"><span class="i"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16.5 16.5"/></svg></span></div>
+          <h3>Ya tengo código / un repo</h3>
+          <p style="font-size:13.3px">Pega tu repositorio de GitHub y reviso qué ya tienes, qué le falta y cómo terminarlo para publicar o vender.</p>
+          <span class="sp-go">Ir a Analizar una app →</span>
+        </div>
       </div>
-      <div class="callout">Tú eres el <b>director</b>, Claude es el <b>constructor</b>. Esta app te enseña a dirigir.</div>
-      <div class="card">
-        <h3>Avance del proyecto activo</h3>
-        <div class="progwrap"><div class="progbar" id="globalProg"></div></div>
-        <p style="font-size:12.5px;margin:4px 0 0" id="globalProgTxt"></p>
-        <div class="row" style="margin-top:14px"><button class="btn" data-go="dashboard"><span class="i"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span> Ver mis proyectos</button><button class="btn ghost" data-go="roadmap">Ir al roadmap</button></div>
+
+      <h2 style="margin-top:30px">Cómo funciona, en 3 pasos</h2>
+      <div class="grid g3" style="margin-top:14px">
+        <div class="card"><div class="pill">Paso 1</div><h3 style="margin-top:12px">Describe tu idea</h3><p style="font-size:13.3px">En <b>Proyecto actual</b>. Detecto el tipo de app y armo tu mapa técnico.</p></div>
+        <div class="card"><div class="pill">Paso 2</div><h3 style="margin-top:12px">Sigue tu roadmap</h3><p style="font-size:13.3px">Fase por fase, con tips, herramientas y ejemplos pensados para tu app.</p></div>
+        <div class="card"><div class="pill">Paso 3</div><h3 style="margin-top:12px">Lleva y publica</h3><p style="font-size:13.3px">Prepárala para <b>web, móvil y tablet</b> y analízala antes de publicar.</p></div>
+      </div>
+      <div class="callout" style="margin-top:18px">Tú eres el <b>director</b>, Claude es el <b>constructor</b>. Tu trabajo no es escribir código: es describir bien, revisar y pedir cambios. Esta app te enseña a dirigir.</div>
+
+      <div class="card" id="glossaryCard" style="display:none">
+        <h3>¿Te topaste con una palabra rara?</h3>
+        <p style="font-size:13.3px;margin:4px 0 0">Tienes un <b>diccionario sin tecnicismos</b> con analogías de la vida real, y una guía de <b>errores comunes</b> para no tropezar.</p>
+        <div class="row" style="margin-top:12px"><button class="btn ghost sm" data-go="diccionario">Abrir diccionario</button><button class="btn ghost sm" data-go="errores">Ver errores comunes</button></div>
       </div>
     </section>
 
@@ -480,6 +515,7 @@ function go(id){
   pages.forEach(p=>p.classList.toggle('on',p.id===id));
   document.querySelectorAll('#nav .nav-b').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
   document.querySelectorAll('#mtop .nav-b').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
+  if(id==='inicio') renderHome();
   if(id==='roadmap') renderPhases();
   if(id==='dashboard') renderDashboard();
   if(id==='proyecto'){renderSwitch();loadForm();}
@@ -941,6 +977,48 @@ function updateProg(){
   const rt=document.getElementById('rmProgTxt');if(rt)rt.textContent=`${pr.done} de ${pr.total} pasos completados (${pr.pct}%)`;
   const gt=document.getElementById('globalProgTxt');
   if(gt)gt.textContent=pr.pct===0?`"${active().name}" — aún sin pasos completados.`:pr.pct===100?`¡"${active().name}" completó toda la ruta!`:`"${active().name}": ${pr.pct}% del camino. ¡Sigue así!`;
+  renderHome();
+}
+/* Inicio: tarjeta dinámica de "tu siguiente paso" según el proyecto activo */
+function renderHome(){
+  const box=document.getElementById('nextStepCard'); if(!box) return;
+  document.getElementById('glossaryCard').style.display='';
+  const a=active(), v=a.fields||{};
+  const btn=(go,label,ghost)=>`<button class="btn ${ghost?'ghost ':''}sm" data-go="${go}">${label}</button>`;
+  let ic_,lbl,title,desc,acts;
+  if(!v.que){
+    ic_='spark'; lbl='Empieza aquí';
+    title='Aún no describiste tu proyecto';
+    desc='Cuéntame tu idea en una frase y armo tu mapa: stack recomendado, costos y el primer prompt para Claude.';
+    acts=btn('proyecto','Describir mi idea')+btn('analizar','O analizar un repo existente',true);
+  } else {
+    const pr=projProgress(a);
+    // encontrar siguiente paso pendiente del roadmap
+    let next=null;
+    outer: for(let i=0;i<PHASES.length;i++){for(let j=0;j<PHASES[i].tasks.length;j++){if(!(a.roadmap||{})[`p${i}_${j}`]){next={i,j};break outer;}}}
+    const ty=detectType(v);
+    if(!a.generated){
+      ic_='pen'; lbl='Continúa con '+esc(a.name);
+      title='Genera el mapa de tu proyecto';
+      desc='Ya tienes la idea escrita. Genera el mapa para ver tu stack, costos y el prompt de arranque.';
+      acts=btn('proyecto','Generar mi mapa')+btn('roadmap','Ver roadmap',true);
+    } else if(next){
+      ic_='arrowRight'; lbl='Tu siguiente paso · '+esc(a.name)+' ('+pr.pct+'%)';
+      title=PHASES[next.i].name+': '+PHASES[next.i].tasks[next.j].t;
+      desc=PHASES[next.i].tasks[next.j].how;
+      acts=btn('roadmap','Ir a este paso')+btn('dispositivos','Llevar a dispositivos',true)+btn('analizar','Analizar mi código',true);
+    } else {
+      ic_='flag'; lbl='¡Roadmap completo! · '+esc(a.name);
+      title='Prepárala para publicar y dispositivos';
+      desc='Completaste las fases. Ahora revisa la compatibilidad por dispositivo y analiza tu repo antes de publicar.';
+      acts=btn('dispositivos','Llevar a dispositivos')+btn('analizar','Analizar mi código',true);
+    }
+  }
+  box.innerHTML=`<div class="nextstep"><div class="ns-ic"><span class="i"><svg viewBox="0 0 24 24">${ICONS[ic_]||ICONS.spark}</svg></span></div>
+    <div style="flex:1"><div class="ns-lbl">${lbl}</div><h3>${title}</h3><p>${desc}</p>
+    <div class="ns-act">${acts}</div></div></div>`;
+  // los botones nuevos necesitan su listener (se recrean en cada render)
+  box.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 }
 
 /* ===== guía estática ===== */
