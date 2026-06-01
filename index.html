@@ -181,7 +181,15 @@
   .iconbtn .i{width:14px;height:14px}
   .platgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media(max-width:760px){.platgrid{grid-template-columns:1fr}}
-  .plat{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:15px 16px}
+  .plat{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:15px 16px;margin:0 0 10px}
+  details.plat>summary.plat-sum{cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;padding:0}
+  details.plat>summary.plat-sum::-webkit-details-marker{display:none}
+  .plat-sum .i{color:var(--ink-soft);width:18px;height:18px} .plat-sum b{font-size:14px;color:var(--ink)}
+  .plat-sum .chev{color:var(--ink-dim);transition:.2s;margin-left:4px} details.plat[open]>.plat-sum .chev{transform:rotate(90deg)}
+  .dev-chk-count{font-size:11.5px;color:var(--ink-dim);margin-left:auto}
+  .plat-sum .plat-pct{margin-left:14px}
+  .plat-inner{padding-top:4px}
+  .dev-checklist{margin-top:10px;border-top:1px solid var(--line-soft);padding-top:6px}
   .plat-h{display:flex;align-items:center;gap:9px}
   .plat-h .i{color:var(--ink-soft);width:18px;height:18px}
   .plat-h b{font-size:14px;color:var(--ink)}
@@ -1516,21 +1524,6 @@ function deviceRoadmaps(ctx){
   return R;
 }
 function rmStat(st){return st==='ok'?statusIcon('ok'):st==='partial'?statusIcon('partial'):statusIcon('missing');}
-function renderDeviceRoadmaps(ctx){
-  const R=deviceRoadmaps(ctx);
-  return Object.values(R).map(d=>{
-    const done=d.steps.filter(s=>s.st==='ok').length, pend=d.steps.filter(s=>s.st!=='ok').length;
-    return `<details class="acc"><summary><span class="i" style="width:17px;height:17px">${d.icon}</span> ${d.name} <span class="ph-prog">${done}/${d.steps.length} listos${pend?` · ${pend} por hacer`:''}</span><span class="chev">›</span></summary>
-      <div class="acc-body">${d.steps.map(s=>`
-        <div class="task ${s.st==='ok'?'checked':''}" style="margin:8px 0">
-          <div class="tl" style="align-items:flex-start"><span class="st" style="margin-top:1px">${rmStat(s.st)}</span><span>${s.t}</span></div>
-          <div class="guide">
-            <div class="gline"><span class="gi">${ic('info')}</span><span>${esc(s.detail)}</span></div>
-            ${s.st!=='ok'?`<div class="gline"><span class="gi">${ic('message')}</span><span><b>Cómo lograrlo:</b> <button class="iconbtn copytext" data-copytext="${escAttr(s.prompt)}" title="Copiar prompt" style="vertical-align:-7px">${ic('copy')}</button> <span style="font-family:var(--mono);font-size:11.5px;color:#cdd6ea">${esc(s.prompt)}</span></span></div>`:''}
-          </div>
-        </div>`).join('')}</div></details>`;
-  }).join('');
-}
 /* Evalúa compatibilidad con plataformas (iOS / Android / Tablet / Web) */
 function platformCompat(ctx){
   const {has,dep}=ctx; const K=ctx.kind||detectRepoKind(ctx);
@@ -1680,23 +1673,35 @@ function platformCompat(ctx){
 
   return {na:false,plats};
 }
-function renderPlatforms(pc){
+/* Vista unificada por dispositivo: % + checklist detectado + opciones de mejora */
+function renderDevicesUnified(ctx){
+  const pc=platformCompat(ctx);
   if(pc.na) return `<div class="card"><div class="win" style="border-left-color:var(--ink-dim);background:var(--bg-soft)">${ic('info')} ${esc(pc.reason)}</div></div>`;
+  const R=deviceRoadmaps(ctx);
   const bc=s=>s>=75?'var(--ok)':s>=40?'var(--warn)':'var(--bad)';
   const optHtml=o=>`<div class="popt"><div class="ot">${esc(o.name)}${o.tag?`<span class="tag2">${esc(o.tag)}</span>`:''}</div><div class="od">${esc(o.desc)}</div><ol class="steps">${o.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol><div class="ex"><span class="exl">Prompt para Claude<button class="iconbtn copytext" data-copytext="${escAttr(o.prompt)}" title="Copiar prompt">${ic('copy')}</button></span>${esc(o.prompt)}</div></div>`;
-  return `<div class="platgrid">${pc.plats.map(p=>`
-    <div class="plat">
-      <div class="plat-h"><span class="i">${p.icon}</span><b>${p.name}</b><span class="plat-pct" style="color:${bc(p.score)}">${p.score}%</span></div>
-      <div class="bar"><i style="width:${p.score}%;background:${bc(p.score)}"></i></div>
-      <div class="plat-note">${esc(p.note)}</div>
-      <details class="plat-fix"><summary>${ic('tool')} Cómo mejorarlo · ${p.opts.length} opcion${p.opts.length>1?'es':''} <span class="chev">›</span></summary>
-        <div class="plat-body">
-          <div class="plat-miss">${ic('arrowRight')} ${esc(p.missing)}</div>
-          ${p.opts.map(optHtml).join('')}
-        </div>
-      </details>
-    </div>`).join('')}</div>
-   <p class="hint" style="margin-top:10px">${ic('info')} Los porcentajes se estiman leyendo tus archivos (HTML, CSS, librerías). Para el diseño responsive lo confirmo con tus media queries y la etiqueta viewport; aun así, conviene verlo abriendo la app en cada dispositivo.</p>`;
+  return pc.plats.map(p=>{
+    const rm=R[p.key];
+    const done=rm?rm.steps.filter(s=>s.st==='ok').length:0, total=rm?rm.steps.length:0;
+    const checklist=rm?`<div class="dev-checklist">${rm.steps.map(s=>`
+        <div class="task ${s.st==='ok'?'checked':''}" style="margin:7px 0">
+          <div class="tl" style="align-items:flex-start"><span class="st" style="margin-top:1px">${rmStat(s.st)}</span><span>${s.t}</span></div>
+          <div class="guide"><div class="gline"><span class="gi">${ic('info')}</span><span>${esc(s.detail)}</span></div>
+            ${s.st!=='ok'?`<div class="gline"><span class="gi">${ic('message')}</span><span><b>Cómo lograrlo:</b> <button class="iconbtn copytext" data-copytext="${escAttr(s.prompt)}" title="Copiar prompt" style="vertical-align:-7px">${ic('copy')}</button> <span style="font-family:var(--mono);font-size:11.5px;color:#cdd6ea">${esc(s.prompt)}</span></span></div>`:''}
+          </div></div>`).join('')}</div>`:'';
+    return `<details class="plat" style="padding:0"><summary class="plat-sum">
+        <span class="i">${p.icon}</span><b>${p.name}</b>
+        <span class="dev-chk-count">${total?done+'/'+total+' listos':''}</span>
+        <span class="plat-pct" style="color:${bc(p.score)}">${p.score}%</span><span class="chev">›</span></summary>
+      <div class="plat-inner">
+        <div class="bar"><i style="width:${p.score}%;background:${bc(p.score)}"></i></div>
+        <div class="plat-note">${esc(p.note)}</div>
+        ${checklist}
+        <details class="plat-fix" style="margin-top:12px"><summary>${ic('tool')} Cómo mejorarlo · ${p.opts.length} opcion${p.opts.length>1?'es':''} <span class="chev">›</span></summary>
+          <div class="plat-body"><div class="plat-miss">${ic('arrowRight')} ${esc(p.missing)}</div>${p.opts.map(optHtml).join('')}</div>
+        </details>
+      </div></details>`;
+  }).join('')+`<p class="hint" style="margin-top:10px">${ic('info')} Los porcentajes y el ✓/✗ se estiman leyendo tus archivos (HTML, CSS, librerías). Lo que no se puede ver desde el código (publicado en tienda, mantenimiento) confírmalo tú abriendo la app en cada dispositivo.</p>`;
 }
 function renderReport(ctx,checks){
   LAST_CTX=ctx;
@@ -1730,8 +1735,7 @@ function renderReport(ctx,checks){
    <h2>${ic('chart')}Avance por fase</h2><div class="card">${phaseRows}</div>
    ${missingCrit.length?`<h2>${ic('x')}Lo que falta para publicar / vender</h2><p style="font-size:13px;margin:-4px 0 10px;color:var(--ink-dim)">Lo crítico, con cómo resolverlo, opciones y ejemplos.</p>${missingCrit.map(c=>`<div class="miss"><b>${c.label}.</b> ${c.tip||c.evidence}${renderFix(c.fix)}</div>`).join('')}`:`<div class="card"><div class="win"><b>¡Buenas noticias!</b> No detecté carencias críticas para publicar este tipo de proyecto. Revisa los detalles abajo.</div></div>`}
    <h2>${ic('check')}Lo que ya tienes bien</h2><div class="card">${wins.length?wins.map(c=>`<div class="win">${c.label} — ${c.evidence}</div>`).join(''):'<p>Aún pocas cosas marcadas. ¡Es el comienzo!</p>'}</div>
-   <h2>${ic('devices')}Compatibilidad por dispositivo</h2><p style="font-size:13px;margin:-4px 0 10px;color:var(--ink-dim)">Qué tan lista está para iPhone, Android, tablet y web — con qué le falta, pasos y prompts.</p>${renderPlatforms(platformCompat(ctx))}
-   <h2>${ic('list')}Roadmap por dispositivo</h2><p style="font-size:13px;margin:-4px 0 10px;color:var(--ink-dim)">Para cada dispositivo: lo que ya está hecho (✓), lo que falta y cómo lograrlo (prompt paso a paso).</p>${renderDeviceRoadmaps(ctx)}
+   <h2>${ic('devices')}Compatibilidad por dispositivo</h2><p style="font-size:13px;margin:-4px 0 10px;color:var(--ink-dim)">Para iPhone, Android, tablet y web: su % de preparación, lo que ya está hecho (✓), lo que falta y cómo lograrlo con prompts. Despliega cada uno.</p>${renderDevicesUnified(ctx)}
    <h2>${ic('search')}Revisión detallada por fase</h2><p style="font-size:13px;margin:-4px 0 10px;color:var(--ink-dim)">Cada punto a mejorar incluye cómo solucionarlo, con opciones y ejemplos. ¿Algo que el análisis no puede ver (backend en otro servidor, deploy en una tienda, mantenimiento) y que <b>ya hiciste</b>? Pulsa <b>"Ya lo hice"</b> para marcarlo — se guarda para este repo.</p>${checkList}
    <div class="card"><div class="row">
      <button class="btn" id="anApply">${ic('pin')} Crear proyecto con este avance</button>
