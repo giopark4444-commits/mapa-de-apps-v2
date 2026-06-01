@@ -225,6 +225,8 @@
   .linkstate{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ok);margin-top:7px}
   .linkstate .i{width:14px;height:14px}
   .live{font-size:11.5px;color:var(--ink-dim)} .live.ok{color:var(--ok)} .live.bad{color:var(--warn)}
+  .gloss{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;font-size:10px;font-weight:700;cursor:help;color:var(--brand);background:var(--accent-soft);border:1px solid rgba(155,140,255,.3);vertical-align:1px}
+  .gloss:hover{background:var(--brand);color:#15131f}
   .typebar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .typebadge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
   .typebadge .i{color:var(--brand)}
@@ -763,8 +765,39 @@ function rankDeploy(v){
   if(mobile)o.push({name:'Expo EAS + tiendas',tag:'App Store / Google Play',score:80,why:'Para móvil, Expo te ayuda a generar la app y subirla a las tiendas paso a paso.',pros:['Guía a las tiendas','iOS y Android'],cons:['Apple ~US$99/año','Google ~US$25 única vez']});
   return o;
 }
+// Glosario corto de términos del stack para explicar en contexto (tooltip nativo)
+const TECHDEF={
+  'react':'Una de las formas más usadas de construir webs por piezas (componentes). Muy popular: hay ayuda para todo.',
+  'vite':'Una herramienta que hace que tu web cargue y se actualice rapidísimo mientras la construyes.',
+  'next.js':'React con extras: une la parte visible y la lógica, y se publica gratis muy fácil en Vercel.',
+  'vue':'Otra forma popular y amigable de construir webs por componentes, parecida a React.',
+  'svelte':'Una forma moderna y ligera de construir webs; escribe menos código.',
+  'angular':'Un framework grande y completo para webs, usado sobre todo en empresas.',
+  'html + css + javascript':'Los tres ladrillos básicos de toda web: estructura, estilo y comportamiento. Lo más simple para empezar.',
+  'react native':'Te deja hacer apps de iPhone y Android con un solo código, parecido a React.',
+  'expo':'Un kit que facilita mucho React Native: pruebas en tu celular al instante y publicas más fácil.',
+  'flutter':'Tecnología de Google para apps móviles muy fluidas; usa el lenguaje Dart.',
+  'supabase':'Te da base de datos, cuentas de usuario y archivos listos, con un panel visual fácil y plan gratis.',
+  'firebase':'La opción de Google: base de datos en tiempo real, cuentas y más, muy usada.',
+  'localstorage':'Un cajón del propio navegador para guardar datos solo en ese dispositivo. Cero configuración.',
+  'vercel':'Servicio para publicar tu web en minutos conectando GitHub. Gratis para empezar.',
+  'netlify':'Muy parecido a Vercel: publica tu web fácil y gratis.',
+  'github pages':'Forma gratuita de publicar webs sencillas directamente desde GitHub.',
+  'git + github':'Git guarda cada versión de tu código (un "deshacer" infinito); GitHub lo respalda en la nube.',
+  'backend propio (node)':'Construir tú mismo el "cerebro" del servidor. Más control, pero mucho más trabajo.',
+};
+function glossChip(name){
+  const n=(name||'').toLowerCase();
+  let d=TECHDEF[n];
+  if(!d){ // coincidencia por palabra clave (ej. "React (con Vite)" -> react)
+    const keys=Object.keys(TECHDEF).sort((a,b)=>b.length-a.length);
+    const k=keys.find(key=>n.includes(key));
+    if(k)d=TECHDEF[k];
+  }
+  return d?` <span class="gloss" title="${escAttr(d)}">?</span>`:'';
+}
 function renderOptions(list){list.sort((a,b)=>b.score-a.score);const max=list[0].score||1;
-  return list.map((op,i)=>{const best=i===0;return `<div class="opt ${best?'best':''}"><div class="oh"><span class="medal-n">${i+1}</span><span><span class="oname">${op.name}</span> <span class="otag">— ${op.tag}</span></span>${best?'<span class="badge-best">RECOMENDADO</span>':''}</div><div class="scoreline"><div class="scorebar"><div class="scorefill" style="width:${Math.max(8,Math.round(op.score/max*100))}%"></div></div><span class="scorenum">aptitud ${op.score}%</span></div><div class="why"><b>Por qué:</b> ${op.why}</div><div class="pclist"><div class="pro"><span class="pch">✓ A favor</span><ul>${op.pros.map(p=>`<li>${p}</li>`).join('')}</ul></div><div class="con"><span class="pch">✕ En contra</span><ul>${op.cons.map(c=>`<li>${c}</li>`).join('')}</ul></div></div></div>`;}).join('');
+  return list.map((op,i)=>{const best=i===0;return `<div class="opt ${best?'best':''}"><div class="oh"><span class="medal-n">${i+1}</span><span><span class="oname">${op.name}</span>${glossChip(op.name)} <span class="otag">— ${op.tag}</span></span>${best?'<span class="badge-best">RECOMENDADO</span>':''}</div><div class="scoreline"><div class="scorebar"><div class="scorefill" style="width:${Math.max(8,Math.round(op.score/max*100))}%"></div></div><span class="scorenum">aptitud ${op.score}%</span></div><div class="why"><b>Por qué:</b> ${op.why}</div><div class="pclist"><div class="pro"><span class="pch">✓ A favor</span><ul>${op.pros.map(p=>`<li>${p}</li>`).join('')}</ul></div><div class="con"><span class="pch">✕ En contra</span><ul>${op.cons.map(c=>`<li>${c}</li>`).join('')}</ul></div></div></div>`;}).join('');
 }
 
 /* ===== costos ===== */
@@ -779,7 +812,7 @@ function renderCost(v,be){
   rows.push([ic('globe')+' Dominio propio (opcional)','Ej: mi-app.com (Namecheap, etc.)','~$10–15/año']);
   if(mobile) rows.push([ic('phone')+' Publicar en tiendas','Apple Developer + Google Play','~$99/año + $25 única vez']);
   rows.push([ic('git')+' Git + GitHub','Control de versiones','$0']);
-  rows.push([ic('cpu')+' Claude Code','Tu copiloto para construir','Tu plan actual']);
+  rows.push([ic('cpu')+' Claude (para construir)','Tu copiloto que escribe el código','Plan gratis o ~US$20/mes']);
   let minMo=0,maxMo=0;
   if(v.escala==='grande'&&(v.datos==='nube'||v.login==='si')) maxMo=25;
   const oneTime=mobile?'+ ~$99/año (Apple) y $25 (Google) si publicas en tiendas':'';
@@ -787,7 +820,8 @@ function renderCost(v,be){
     ${rows.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
     <tr class="tot"><td>${ic('wallet')} Para empezar y probar</td><td>Casi todo tiene plan gratis</td><td>$0 / mes</td></tr>
     <tr class="tot"><td>${ic('trending')} Si crece</td><td>Pagas solo cuando tienes uso/usuarios</td><td>~$${minMo}–${maxMo||25} / mes</td></tr></table>
-    ${oneTime?`<p class="hint" style="margin-top:10px">${oneTime}. Un dominio propio es opcional (~$10–15/año); sin él, tu app igual vive gratis en una dirección tipo <code>mi-app.vercel.app</code>.</p>`:'<p class="hint" style="margin-top:10px">Un dominio propio es opcional; sin él, tu app vive gratis en una dirección tipo <code>mi-app.vercel.app</code>.</p>'}`;
+    ${oneTime?`<p class="hint" style="margin-top:10px">${oneTime}. Un dominio propio es opcional (~$10–15/año); sin él, tu app igual vive gratis en una dirección tipo <code>mi-app.vercel.app</code>.</p>`:'<p class="hint" style="margin-top:10px">Un dominio propio es opcional; sin él, tu app vive gratis en una dirección tipo <code>mi-app.vercel.app</code>.</p>'}
+    <div class="callout" style="margin-top:14px"><b>Sé realista, no solo es dinero:</b> lo que más "cuesta" al empezar es <b>tu tiempo</b> y la <b>curva de aprendizaje</b>. La herramienta de IA que te ayuda a construir (como Claude) suele tener un costo mensual; los servicios gratis tienen <b>límites</b> y empiezan a cobrar cuando creces. Empieza pequeño, aprende, y paga solo cuando tu app lo justifique.</div>`;
 }
 
 /* ===== generar mapa ===== */
