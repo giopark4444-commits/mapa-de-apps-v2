@@ -235,6 +235,8 @@
   .live{font-size:11.5px;color:var(--ink-dim)} .live.ok{color:var(--ok)} .live.bad{color:var(--warn)}
   .gloss{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;font-size:10px;font-weight:700;cursor:help;color:var(--brand);background:var(--accent-soft);border:1px solid rgba(155,140,255,.3);vertical-align:1px}
   .gloss:hover{background:var(--brand);color:#15131f}
+  .sev{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:1px 8px;border:1px solid currentColor;margin-left:6px}
+  .sev.st-missing{color:var(--bad)} .sev.st-partial{color:var(--warn)} .sev.st-info{color:var(--ink-dim)}
   .typebar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .typebadge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
   .typebadge .i{color:var(--brand)}
@@ -256,6 +258,7 @@
       <button class="nav-b" data-go="roadmap"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.4 6H15a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6.6"/></svg></span> Roadmap del proyecto</button>
       <button class="nav-b" data-go="dispositivos"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="12.5" height="9" rx="1.5"/><path d="M6 17.5h6.5"/><rect x="16.5" y="9" width="5" height="9" rx="1.2"/></svg></span> Llevar a dispositivos</button>
       <button class="nav-b" data-go="analizar"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16.5 16.5"/></svg></span> Analizar una app</button>
+      <button class="nav-b" data-go="seguridad"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/></svg></span> Seguridad</button>
       <div class="nav-h">La guía</div>
       <button class="nav-b" data-go="arquitectura"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></span> Mapa de arquitectura</button>
       <button class="nav-b" data-go="diccionario"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4.5h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M18 16.5H7a2 2 0 0 0-2 2"/></svg></span> Diccionario</button>
@@ -450,6 +453,35 @@
       <div id="anResult" style="display:none"></div>
     </section>
 
+    <!-- SEGURIDAD -->
+    <section class="page" id="seguridad">
+      <span class="eyebrow">Blindaje</span>
+      <h1>Seguridad de tu app</h1>
+      <p class="lead">Lo que más se descuida en vibecoding. Aquí <b>escaneo tu repo</b> en busca de fallos reales (claves expuestas, archivos peligrosos…), te doy un <b>roadmap de seguridad</b> con checklist, y <b>recomendaciones de blindaje</b> contra ataques y abuso de APIs de IA — todo con cómo corregirlo y prompts.</p>
+      <div class="an-modes" id="secTabs">
+        <button class="an-mode on" data-sectab="auditar">Auditar mi repo</button>
+        <button class="an-mode" data-sectab="roadmap">Roadmap de seguridad</button>
+        <button class="an-mode" data-sectab="blindaje">Recomendaciones de blindaje</button>
+      </div>
+
+      <div id="secAuditar">
+        <div class="card">
+          <label>Enlace del repositorio (público)</label>
+          <input id="secUrl" placeholder="https://github.com/usuario/mi-proyecto">
+          <div class="hint">Reviso el código en busca de secretos filtrados, dependencias riesgosas y prácticas inseguras. Solo lectura; no modifico nada.</div>
+          <div class="row" style="margin-top:14px"><button class="btn" id="secBtn"><span class="i"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/></svg></span> Auditar seguridad</button></div>
+        </div>
+        <div id="secResult" style="display:none"></div>
+      </div>
+
+      <div id="secRoadmap" style="display:none">
+        <div class="pbar"><span class="lbl">Proyecto:</span><select id="secSwitch"></select></div>
+        <div id="secRoadmapBody"></div>
+      </div>
+
+      <div id="secBlindaje" style="display:none"></div>
+    </section>
+
     <!-- DISPOSITIVOS -->
     <section class="page" id="dispositivos">
       <span class="eyebrow">Multiplataforma</span>
@@ -530,6 +562,7 @@ function go(id){
   if(id==='dashboard') renderDashboard();
   if(id==='proyecto'){renderSwitch();loadForm();}
   if(id==='dispositivos') renderDevices();
+  if(id==='seguridad') renderBlindaje(); // precarga la pestaña de blindaje
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
@@ -594,6 +627,8 @@ const ICONS={
  eyeOff:'<path d="M4 4l16 16"/><path d="M9.6 9.6a3 3 0 0 0 4.2 4.2"/><path d="M7 7C4.6 8.6 3 12 3 12s3 6 9 6c1.6 0 3-.4 4.2-1M10 5.2A9 9 0 0 1 12 5c6 0 9 6 9 6s-.6 1.2-1.9 2.6"/>',
  save:'<path d="M5 4.5h11L19.5 8v11.5H5z"/><path d="M8 4.5V9h7"/><rect x="8.5" y="13" width="7" height="6.5"/>',
  key:'<circle cx="8" cy="8" r="3.6"/><path d="M10.6 10.6 20 20M16 16l2-2M18 18l1.5-1.5"/>',
+ shield:'<path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/>',
+ lock:'<rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/><path d="M12 14v3"/>',
  grid:'<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
  git:'<circle cx="6" cy="6" r="2.4"/><circle cx="6" cy="18" r="2.4"/><circle cx="17" cy="9" r="2.4"/><path d="M6 8.4v7.2M8.2 7.2 14.8 9M17 11.4c0 4-4 3.6-8 3.6"/>',
  copy:'<rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M5.5 15.5H5A1.5 1.5 0 0 1 3.5 14V5A1.5 1.5 0 0 1 5 3.5h9A1.5 1.5 0 0 1 15.5 5v.5"/>',
@@ -1869,6 +1904,254 @@ function renderDevices(){
   document.querySelectorAll('#devBody [data-dev-task]').forEach(c=>c.addEventListener('change',()=>{active().devices[c.dataset.devTask]=c.checked;saveDB();renderDevices();}));
 }
 document.getElementById('devSwitch').addEventListener('change',e=>{DB.activeId=e.target.value;saveDB();refreshChrome();renderDevices();});
+
+/* ===================== SEGURIDAD ===================== */
+/* --- Auditoría: escanea archivos del repo en busca de problemas reales --- */
+const SECRET_PATTERNS=[
+  {re:/(sk-[a-zA-Z0-9]{20,}|sk-proj-[a-zA-Z0-9_-]{20,})/,name:'Clave de OpenAI'},
+  {re:/(sk-ant-[a-zA-Z0-9_-]{20,})/,name:'Clave de Anthropic (Claude)'},
+  {re:/AIza[0-9A-Za-z_-]{30,}/,name:'Clave de Google/Firebase'},
+  {re:/AKIA[0-9A-Z]{16}/,name:'Clave de AWS'},
+  {re:/(ghp|gho|ghs)_[0-9A-Za-z]{30,}/,name:'Token de GitHub'},
+  {re:/xox[baprs]-[0-9A-Za-z-]{10,}/,name:'Token de Slack'},
+  {re:/sk_live_[0-9A-Za-z]{20,}/,name:'Clave secreta de Stripe (LIVE)'},
+  {re:/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/,name:'Token JWT'},
+  {re:/-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/,name:'Clave privada'},
+  {re:/(password|passwd|contraseña)\s*[:=]\s*["'][^"'\s]{6,}["']/i,name:'Contraseña en texto'},
+];
+async function auditSecurity(){
+  const pr=parseRepo(document.getElementById('secUrl').value);
+  const box=document.getElementById('secResult');
+  if(!pr){showToast('Pega un enlace de GitHub válido');return;}
+  box.style.display='block';
+  box.innerHTML=`<div class="card">Auditando seguridad de <b>${esc(pr.owner)}/${esc(pr.repo)}</b>… revisando archivos y dependencias.</div>`;
+  try{
+    const meta=await ghJSON(`https://api.github.com/repos/${pr.owner}/${pr.repo}`);
+    const branch=meta.default_branch||'main';
+    let tree={};try{tree=await ghJSON(`https://api.github.com/repos/${pr.owner}/${pr.repo}/git/trees/${branch}?recursive=1`);}catch(_){}
+    const paths=(tree.tree||[]).map(t=>t.path); const lower=paths.map(p=>p.toLowerCase());
+    const has=re=>lower.some(p=>re.test(p));
+    const get=p=>ghText(pr.owner,pr.repo,branch,p);
+    const gitignore=await get('.gitignore');
+    const pkgTxt=await get('package.json'); let pkg=null;try{pkg=pkgTxt?JSON.parse(pkgTxt):null;}catch(_){}
+    const deps=pkg?Object.assign({},pkg.dependencies,pkg.devDependencies):{};
+    // leer archivos de código candidatos a contener secretos (límite para no saturar)
+    const codeFiles=paths.filter(p=>/\.(js|jsx|ts|tsx|py|env|json|yml|yaml|html|rb|php|go|java|txt|config|ini)$/i.test(p)
+      && !/package-lock|yarn\.lock|pnpm-lock|\.min\.|node_modules\//i.test(p)).slice(0,40);
+    const envLike=paths.filter(p=>/(^|\/)\.env/i.test(p));
+    const scanned=[...new Set([...envLike,...codeFiles])].slice(0,45);
+    const findings=[];
+    for(const f of scanned){
+      const t=await get(f); if(!t)continue;
+      SECRET_PATTERNS.forEach(p=>{ if(p.re.test(t)) findings.push({file:f,name:p.name}); });
+    }
+    const ctx={pr,meta,paths,has,gitignore,pkg,deps,findings,scannedCount:scanned.length,name:pr.owner+'/'+pr.repo};
+    renderSecReport(ctx);
+  }catch(e){
+    const msg=e.message==='404'?'No encontré ese repositorio (¿es público?).':e.message==='rate'?'GitHub me limitó por muchas consultas. Espera unos minutos.':'No pude auditarlo. Revisa el enlace.';
+    box.innerHTML=`<div class="card"><div class="miss"><b>Ups.</b> ${msg}</div></div>`;
+  }
+}
+function secChecks(ctx){
+  const {has,gitignore,deps,findings,pkg}=ctx;
+  const C=[];
+  const P=(label,status,evidence,sev,fix)=>C.push({label,status,evidence,sev,fix});
+  const depHas=n=>Object.keys(deps).some(d=>d.toLowerCase().includes(n));
+  const usesAI=depHas('openai')||depHas('@anthropic')||depHas('anthropic')||depHas('@google/genai')||depHas('replicate')||depHas('cohere')||depHas('langchain');
+  const usesBackend=depHas('express')||depHas('fastify')||depHas('next')||has(/\/api\//)||depHas('supabase')||depHas('firebase')||depHas('flask')||depHas('django')||depHas('fastapi');
+  const envIgnored=gitignore&&/(^|\n)\s*\.env/.test(gitignore);
+  const envCommitted=has(/(^|\/)\.env$/)||has(/\.env\.local$/)||has(/\.env\.production$/);
+
+  // 1. Secretos filtrados (lo más crítico)
+  if(findings.length){
+    P('Claves o secretos expuestos en el código','missing',
+      findings.map(f=>f.name+' en '+f.file).join(' · '),'critico',
+      [{name:'Acción inmediata',tag:'¡urgente!',desc:'Esas claves ya son públicas: cualquiera puede usarlas y gastar tu dinero. Hay que ROTARLAS (generar nuevas) y sacarlas del código.',
+        steps:['Entra al panel del servicio (OpenAI, Stripe, etc.) y REVOCA/regenera esas claves ya.','Mueve las claves a un archivo .env (que NO se sube).','Agrega .env al .gitignore.','Borra las claves del historial de Git (o, si es posible, recrea el repo limpio).'],
+        prompt:'"Tengo claves de API expuestas en mi repositorio: '+findings.map(f=>f.name).join(', ')+'. Explícame paso a paso, sin asumir que sé programar: 1) cómo revocarlas y crear nuevas, 2) cómo moverlas a variables de entorno (.env), 3) cómo asegurarme de que no vuelvan a subirse, y 4) cómo limpiarlas del historial de Git."'}]);
+  } else {
+    P('Claves o secretos en el código','ok','No detecté patrones de claves filtradas en los archivos revisados ('+ctx.scannedCount+').','');
+  }
+  // 2. .env subido
+  P('Archivo .env en el repositorio',envCommitted?'missing':'ok',
+    envCommitted?'Hay un archivo .env versionado: nunca debe subirse.':'No detecté un .env subido.','critico',
+    envCommitted?[{name:'Sácalo del repo y rota lo que contenga',tag:'urgente',desc:'El .env suele tener todas tus claves. Si está en el repo, son públicas.',
+      steps:['Agrega .env al .gitignore.','Quítalo del repositorio (git rm --cached .env).','Rota/regenera cualquier clave que tuviera.','Crea un .env.example sin valores reales como guía.'],
+      prompt:'"Tengo un archivo .env subido a mi repo de GitHub. Guíame paso a paso para quitarlo del repositorio, ignorarlo en git, rotar sus claves y dejar un .env.example de ejemplo."'}]:null);
+  // 3. .gitignore protege secretos
+  P('Protección de secretos (.gitignore)',envIgnored?'ok':(envCommitted?'missing':'partial'),
+    envIgnored?'.gitignore ya ignora archivos .env':(gitignore?'.gitignore existe pero no parece ignorar .env':'Sin .gitignore'),'alto',
+    envIgnored?null:[{name:'Configura .gitignore',tag:'recomendado',desc:'Evita que archivos con claves se suban por accidente.',
+      steps:['Crea/edita .gitignore.','Añade líneas para .env, .env.local y carpetas de build.','Confirma que git ya no rastrea esos archivos.'],
+      prompt:'"Crea o ajusta mi .gitignore para que nunca suba secretos (.env y variantes) ni archivos basura. Explícame qué hace cada línea."'}]);
+  // 4. Dependencias y vulnerabilidades conocidas
+  P('Revisión de dependencias',pkg?'partial':'info',
+    pkg?('Tienes '+Object.keys(deps).length+' dependencias. No puedo escanear vulnerabilidades desde aquí; hazlo con una herramienta.'):'Sin package.json (o no es proyecto Node).','medio',
+    pkg?[{name:'Ejecuta una auditoría de dependencias',tag:'recomendado',desc:'Las librerías que usas pueden tener fallos conocidos. Hay comandos que los listan y arreglan.',
+      steps:['En tu proyecto, ejecuta el comando de auditoría (npm audit).','Revisa los problemas reportados (severidad alta/crítica primero).','Aplica las correcciones sugeridas (npm audit fix).','Repite cada cierto tiempo.'],
+      prompt:'"Quiero revisar si las librerías de mi proyecto tienen vulnerabilidades conocidas. Guíame para ejecutar una auditoría de dependencias (npm audit u otra), entender los resultados y corregir lo importante, paso a paso."'}]:null);
+  // 5. Autenticación / acceso (si hay backend)
+  if(usesBackend){
+    const authLib=depHas('next-auth')||depHas('clerk')||depHas('@clerk')||depHas('passport')||depHas('lucia')||depHas('supabase')||depHas('firebase');
+    P('Autenticación y control de acceso',authLib?'partial':'info',
+      authLib?'Hay librería de autenticación; revisa que protejas las rutas/datos.':'Tienes backend; confirma quién puede acceder a qué.','alto',
+      [{name:'Protege datos y rutas sensibles',tag:'recomendado',desc:'No basta con login: cada usuario debe ver solo lo suyo.',
+        steps:['Verifica que las rutas privadas exijan sesión válida.','Si usas Supabase, activa Row Level Security (RLS) en las tablas.','Valida permisos en el servidor, no solo en la pantalla.','Prueba intentar acceder a datos de otro usuario.'],
+        prompt:'"Revisa la seguridad de acceso de mi app: que las rutas privadas exijan login, que cada usuario solo vea sus datos (RLS si uso Supabase) y que los permisos se validen en el servidor. Dame los cambios paso a paso."'}]);
+  }
+  // 6. Validación de entradas (inyección/XSS)
+  P('Validación de datos que entran del usuario','info',
+    'No verificable solo con archivos; depende de cómo manejas formularios y consultas.','alto',
+    [{name:'Valida y sanea todo lo que el usuario escribe',tag:'recomendado',desc:'Evita inyección SQL y XSS: nunca confíes en lo que llega del usuario.',
+      steps:['Usa consultas parametrizadas (no concatenes texto en SQL).','Escapa/sanea el texto antes de mostrarlo en pantalla (evita XSS).','Valida tipos y longitudes en el servidor.','Limita el tamaño de lo que se puede enviar.'],
+      prompt:'"Revisa mi app contra inyección SQL y XSS: que use consultas parametrizadas y que sanee lo que el usuario escribe antes de guardarlo o mostrarlo. Explícame qué encontraste y cómo corregirlo, paso a paso."'}]);
+  // 7. HTTPS / cabeceras
+  P('Conexión segura (HTTPS) y cabeceras','info',
+    'Si publicas en Vercel/Netlify, HTTPS viene incluido. Las cabeceras de seguridad suelen faltar.','medio',
+    [{name:'Añade cabeceras de seguridad',tag:'recomendado',desc:'Cabeceras como CSP, HSTS y X-Frame-Options reducen muchos ataques.',
+      steps:['Confirma que tu sitio carga con https:// (candado).','Agrega cabeceras de seguridad en la config de tu hosting.','Verifica con una herramienta gratuita (ej. securityheaders.com).'],
+      prompt:'"Agrega cabeceras de seguridad a mi app (CSP, HSTS, X-Frame-Options, etc.) según mi hosting (Vercel/Netlify/otro) y explícame qué protege cada una. Paso a paso."'}]);
+  // 8. ABUSO DE APIs DE IA (lo que pediste específicamente)
+  if(usesAI){
+    P('Protección de tus APIs de IA (anti-abuso)','missing',
+      'Detecté uso de APIs de IA. Sin protección, alguien puede dispararte la factura usándolas sin control.','critico',
+      [{name:'Nunca pongas la clave de IA en el frontend',tag:'lo más importante',desc:'Si la clave está en el navegador, es visible para cualquiera. Debe vivir SOLO en el servidor.',
+        steps:['Mueve las llamadas a la IA a un backend/función serverless.','Guarda la clave como variable de entorno en el servidor.','El navegador llama a TU servidor, y tu servidor llama a la IA.'],
+        prompt:'"Mi app usa una API de IA. Quiero que la clave nunca quede expuesta en el navegador. Guíame para mover las llamadas a un backend (o función serverless), guardar la clave como variable de entorno y que el frontend llame a mi servidor en vez de a la IA directamente. Paso a paso."'},
+       {name:'Límites de uso (rate limiting)',tag:'esencial',desc:'Pon un tope de cuántas peticiones por usuario/IP por minuto, para que nadie abuse.',
+        steps:['Añade rate limiting en tu backend (por IP y/o por usuario).','Define un tope diario de gasto/uso.','Devuelve un error claro cuando se supera.'],
+        prompt:'"Agrega límites de uso (rate limiting) a las llamadas de IA de mi app: por usuario e IP, con un tope por minuto y un máximo diario, para evitar abuso y facturas sorpresa. Explícame las opciones y hazlo paso a paso."'},
+       {name:'Requiere inicio de sesión para usar la IA',tag:'recomendado',desc:'Que solo usuarios identificados puedan gastar tus créditos de IA.',
+        steps:['Exige sesión válida antes de llamar a la IA.','Asocia el uso a cada cuenta.','Registra el consumo por usuario.'],
+        prompt:'"Quiero que solo usuarios con sesión iniciada puedan usar las funciones de IA de mi app, y llevar registro de cuánto consume cada uno. Guíame paso a paso."'},
+       {name:'Tope de gasto en el proveedor',tag:'red de seguridad',desc:'En el panel de OpenAI/Anthropic, pon un límite de gasto mensual como última barrera.',
+        steps:['Entra al panel de facturación del proveedor de IA.','Configura un límite de gasto (budget/usage limit) mensual.','Activa alertas por correo al acercarte al límite.'],
+        prompt:'"Explícame cómo poner un límite de gasto mensual y alertas en el panel de mi proveedor de IA (OpenAI/Anthropic) para no llevarme sustos en la factura."'}]);
+  }
+  return C;
+}
+const SEV_ORDER={critico:0,alto:1,medio:2,bajo:3};
+function sevTag(sev){const m={critico:['Crítico','st-missing'],alto:['Alto','st-missing'],medio:['Medio','st-partial'],bajo:['Bajo','st-info']}[sev];return m?`<span class="sev ${m[1]}">${m[0]}</span>`:'';}
+function secFix(fix){
+  if(!fix||!fix.length)return '';
+  return `<div class="fixbox"><div class="fh">${ic('tool')} Cómo corregirlo · opciones</div>${fix.map(o=>`<div class="popt"><div class="ot">${esc(o.name)}${o.tag?`<span class="tag2">${esc(o.tag)}</span>`:''}</div><div class="od">${esc(o.desc)}</div>${o.steps?`<ol class="steps">${o.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}<div class="ex"><span class="exl">Prompt para Claude<button class="iconbtn copytext" data-copytext="${escAttr(o.prompt)}" title="Copiar prompt">${ic('copy')}</button></span>${esc(o.prompt)}</div></div>`).join('')}</div>`;
+}
+let LAST_SEC=null;
+function renderSecReport(ctx){
+  const checks=secChecks(ctx);
+  const crit=checks.filter(c=>c.status==='missing'&&(c.sev==='critico'||c.sev==='alto'));
+  const w={ok:1,partial:.5,missing:0,info:null};
+  let s=0,t=0;checks.forEach(c=>{if(w[c.status]===null)return;t++;s+=w[c.status];});
+  const pct=t?Math.round(s/t*100):100;
+  const lvl=crit.length?{t:'Riesgo alto — corrige lo crítico ya',c:'var(--bad)'}:pct>=80?{t:'Buena base de seguridad',c:'var(--ok)'}:{t:'Mejorable — revisa los puntos',c:'var(--warn)'};
+  LAST_SEC={name:ctx.name,pct,crit:crit.length};
+  const ord=[...checks].sort((a,b)=>(SEV_ORDER[a.sev]??9)-(SEV_ORDER[b.sev]??9));
+  document.getElementById('secResult').innerHTML=`
+   <div class="card"><div class="score-ring">
+     <div class="ring" style="--p:${pct}"><b>${pct}%</b><small>seguro</small></div>
+     <div><div class="hint" style="margin:0">Auditoría de seguridad de</div><h2 style="margin:2px 0 6px">${esc(ctx.name)}</h2><div class="level" style="color:${lvl.c}">${lvl.t}</div>
+     <p style="font-size:12.5px;margin:6px 0 0">Revisé ${ctx.scannedCount} archivos en busca de secretos, además de configuración y dependencias.</p></div>
+   </div></div>
+   ${ctx.findings.length?`<div class="card" style="border-color:rgba(224,122,133,.5)"><div class="miss"><b>${ic('alert')} ¡Atención! Posibles claves expuestas</b><br>${ctx.findings.map(f=>esc(f.name)+' → <code>'+esc(f.file)+'</code>').join('<br>')}<br><br>Trátalas como comprometidas: revócalas y crea nuevas. Abajo te explico cómo.</div></div>`:''}
+   <h2>${ic('shield')}Resultados (de mayor a menor riesgo)</h2>
+   <p style="font-size:13px;margin:-4px 0 10px;color:var(--ink-dim)">Cada punto trae su gravedad, cómo corregirlo y un prompt para Claude.</p>
+   ${ord.map(c=>`<div class="chk" style="border:1px solid var(--line);border-radius:10px;padding:13px 14px;margin:0 0 9px;background:var(--panel)"><span class="st">${statusIcon(c.status)}</span><div class="cl"><b>${c.label}</b> ${sevTag(c.sev)}<div class="ev">${esc(c.evidence)}</div>${c.fix?secFix(c.fix):''}</div></div>`).join('')}
+   <div class="card"><div class="row">
+     <button class="btn" id="secToRoadmap">${ic('shield')} Ver roadmap de seguridad</button>
+     <button class="btn ghost" id="secAllPrompt">${ic('message')} Prompt: arréglalo todo</button>
+   </div><div class="prompt" id="secAllWrap" style="display:none;margin-top:14px"><div class="ph">${ic('tool')} Prompt para Claude <button class="btn ghost sm copy" data-copy="#secAll">Copiar</button></div><pre id="secAll"></pre></div></div>`;
+  document.getElementById('secToRoadmap').addEventListener('click',()=>{secTab('roadmap');});
+  document.getElementById('secAllPrompt').addEventListener('click',()=>{
+    const items=ord.filter(c=>c.status!=='ok'&&c.fix).map(c=>`- [${(c.sev||'').toUpperCase()}] ${c.label}: ${c.evidence}`).join('\n');
+    document.getElementById('secAll').textContent=`Audité la seguridad de mi proyecto ${ctx.name} y estos son los puntos a resolver, de mayor a menor gravedad. No sé programar; ayúdame uno por uno, sin romper lo que funciona, y empieza por lo crítico:\n\n${items||'- (sin pendientes)'}\n\nPor cada uno, dime las opciones, recomiéndame una y guíame paso a paso.`;
+    document.getElementById('secAllWrap').style.display='';
+  });
+}
+
+/* --- Roadmap de seguridad (checklist por proyecto) --- */
+const SEC_STEPS=[
+ {t:'Sacar todos los secretos del código',how:'Claves de API, contraseñas y tokens nunca van en el código. Van en variables de entorno (.env) que no se suben.',prompt:'"Revisa mi proyecto y mueve cualquier clave, contraseña o token a variables de entorno (.env), ignóralo en git y deja un .env.example. Paso a paso."'},
+ {t:'Configurar .gitignore para no filtrar nada',how:'Evita subir .env, builds y archivos con datos sensibles por accidente.',prompt:'"Crea/ajusta mi .gitignore para no subir nunca secretos ni basura. Explícame cada línea."'},
+ {t:'Exigir login en lo que sea privado',how:'Cada usuario debe ver solo lo suyo; valida permisos en el servidor, no solo en pantalla.',prompt:'"Asegura que las partes privadas de mi app exijan sesión y que cada usuario solo acceda a sus datos. Si uso Supabase, activa RLS. Paso a paso."'},
+ {t:'Validar y sanear lo que el usuario escribe',how:'Previene inyección SQL y XSS: nunca confíes en datos que llegan de fuera.',prompt:'"Protege mi app contra inyección SQL y XSS: consultas parametrizadas y saneo de entradas. Dime qué cambiar, paso a paso."'},
+ {t:'Proteger las APIs de IA contra abuso',how:'Clave solo en el servidor + límites de uso (rate limit) + tope de gasto en el proveedor.',prompt:'"Mi app usa IA. Protégela: clave solo en backend, rate limiting por usuario/IP, login para usarla y tope de gasto en el proveedor. Explícame y hazlo paso a paso."'},
+ {t:'Auditar dependencias regularmente',how:'Las librerías pueden tener fallos conocidos; hay comandos que los detectan y corrigen.',prompt:'"Guíame para auditar las dependencias de mi proyecto (npm audit u otra), entender los resultados y corregir lo importante."'},
+ {t:'HTTPS y cabeceras de seguridad',how:'HTTPS cifra la conexión; cabeceras como CSP/HSTS bloquean ataques comunes.',prompt:'"Confirma que mi app use HTTPS y añade cabeceras de seguridad (CSP, HSTS, X-Frame-Options) según mi hosting. Explica cada una."'},
+ {t:'Copias de seguridad y plan de recuperación',how:'Si algo se rompe o te atacan, poder volver a un estado bueno lo es todo.',prompt:'"Ayúdame a configurar copias de seguridad de mi base de datos y un plan simple para recuperar mi app si algo falla."'},
+ {t:'Límites de gasto y alertas en los servicios',how:'Topes de gasto en IA, hosting y base de datos evitan facturas sorpresa por abuso.',prompt:'"Explícame cómo poner límites de gasto y alertas de uso en mis servicios (IA, hosting, base de datos) para no llevarme sustos."'},
+ {t:'Revisión final antes de publicar',how:'Una última pasada de seguridad antes de abrir tu app al público.',prompt:'"Voy a publicar mi app. Haz una revisión de seguridad completa final y dame una lista priorizada de lo que falta blindar."'},
+];
+function renderSecRoadmap(){
+  const sw=document.getElementById('secSwitch');
+  sw.innerHTML=Object.entries(DB.projects).map(([id,p])=>`<option value="${id}" ${id===DB.activeId?'selected':''}>${esc(p.name)}</option>`).join('');
+  const a=active(); a.security=a.security||{};
+  const done=SEC_STEPS.filter((_,j)=>a.security['s'+j]).length, pct=Math.round(done/SEC_STEPS.length*100);
+  document.getElementById('secRoadmapBody').innerHTML=`
+    <div class="card"><div class="plat-h" style="margin-bottom:4px"><span class="i">${ic('shield')}</span><b>Roadmap de seguridad · ${esc(a.name)}</b><span class="plat-pct" style="color:${pct>=75?'var(--ok)':pct>=40?'var(--warn)':'var(--bad)'}">${pct}%</span></div>
+      <div class="progwrap"><div class="progbar" style="width:${pct}%"></div></div>
+      <p style="font-size:13px;margin:10px 0 0">Marca cada medida cuando la apliques. Empieza por las primeras (las más críticas). Tu avance se guarda en este proyecto.</p></div>
+    ${SEC_STEPS.map((s,j)=>{const on=!!a.security['s'+j];return `
+      <div class="task ${on?'checked':''}"><label class="tl"><input type="checkbox" data-sec-task="s${j}" ${on?'checked':''}><span>${j+1}. ${s.t}</span></label>
+        <div class="guide">
+          <div class="gline"><span class="gi">${ic('bulb')}</span><span><b>Por qué:</b> ${s.how}</span></div>
+          <div class="gline"><span class="gi">${ic('message')}</span><span><b>Prompt:</b> <button class="iconbtn copytext" data-copytext="${escAttr(s.prompt)}" title="Copiar prompt" style="vertical-align:-7px">${ic('copy')}</button> <span style="font-family:var(--mono);font-size:11.5px;color:#cdd6ea">${esc(s.prompt)}</span></span></div>
+        </div></div>`;}).join('')}`;
+  document.querySelectorAll('#secRoadmapBody [data-sec-task]').forEach(c=>c.addEventListener('change',()=>{active().security[c.dataset.secTask]=c.checked;saveDB();renderSecRoadmap();}));
+}
+document.getElementById('secSwitch').addEventListener('change',e=>{DB.activeId=e.target.value;saveDB();refreshChrome();renderSecRoadmap();});
+
+/* --- Recomendaciones de blindaje --- */
+const BLINDAJE=[
+ {ic:'key',t:'Secretos y claves',items:[
+   'Nunca pongas claves de API, contraseñas ni tokens en el código. Usa variables de entorno (.env) que NO se suben a GitHub.',
+   'Si una clave se filtró alguna vez, considérala comprometida: revócala y crea una nueva.',
+   'Ten un .env.example con los nombres de las variables pero SIN los valores reales.']},
+ {ic:'cpu',t:'APIs de IA (evitar abuso y facturas sorpresa)',items:[
+   'La clave de IA va SOLO en el servidor, nunca en el navegador. El frontend llama a tu servidor; tu servidor llama a la IA.',
+   'Pon límites de uso (rate limiting) por usuario e IP: máximo X peticiones por minuto.',
+   'Exige inicio de sesión para usar funciones de IA, y registra el consumo por usuario.',
+   'Configura un tope de gasto mensual y alertas en el panel del proveedor (OpenAI/Anthropic).',
+   'Valida y limita el tamaño de lo que el usuario envía a la IA (evita prompts gigantes que cuesten mucho).']},
+ {ic:'lock',t:'Acceso y cuentas',items:[
+   'No construyas el login a mano: usa sistemas probados (Supabase Auth, Firebase Auth, Clerk).',
+   'Valida permisos en el servidor, no solo escondiendo botones en la pantalla.',
+   'Cada usuario debe ver solo sus datos. Con Supabase, activa Row Level Security (RLS).',
+   'Usa contraseñas fuertes y, si puedes, verificación en dos pasos (2FA).']},
+ {ic:'shield',t:'Entradas y ataques comunes',items:[
+   'Nunca confíes en lo que escribe el usuario: valida tipo, longitud y formato en el servidor.',
+   'Usa consultas parametrizadas para la base de datos (previene inyección SQL).',
+   'Escapa el texto antes de mostrarlo en pantalla (previene XSS).',
+   'Protege formularios con límites de envío y, si hace falta, captcha contra bots.']},
+ {ic:'globe',t:'Conexión y publicación',items:[
+   'Sirve siempre por HTTPS (en Vercel/Netlify viene incluido).',
+   'Añade cabeceras de seguridad: CSP, HSTS, X-Frame-Options.',
+   'No expongas mensajes de error técnicos al usuario final (dan pistas a atacantes).',
+   'Mantén dependencias y servicios actualizados.']},
+ {ic:'save',t:'Datos y recuperación',items:[
+   'Haz copias de seguridad periódicas de tu base de datos.',
+   'Ten un plan simple para volver atrás si algo se rompe o te atacan (Git + backups).',
+   'Cumple lo básico de privacidad si guardas datos personales (aviso de privacidad, consentimiento).',
+   'Pon límites de gasto en TODOS los servicios de pago, no solo en la IA.']},
+];
+function renderBlindaje(){
+  document.getElementById('secBlindaje').innerHTML=`
+    <p class="lead" style="margin-bottom:6px">Buenas prácticas para proteger tu app de ataques, hackeos y abuso. No necesitas aplicarlas todas de golpe: empieza por secretos y APIs de IA.</p>
+    ${BLINDAJE.map(b=>`<div class="card"><h3>${ic(b.ic)} ${b.t}</h3><ul style="margin:10px 0 0;padding-left:18px">${b.items.map(i=>`<li style="font-size:13.3px;color:var(--ink-soft);margin:6px 0">${esc(i)}</li>`).join('')}</ul></div>`).join('')}
+    <div class="callout">¿Tu app usa IA? Lee con calma la sección <b>"APIs de IA"</b>: es donde más gente pierde dinero por no protegerla. La regla de oro: <b>la clave nunca en el navegador + límites de uso + tope de gasto</b>.</div>`;
+}
+
+/* --- pestañas de Seguridad --- */
+function secTab(name){
+  document.querySelectorAll('#secTabs [data-sectab]').forEach(b=>b.classList.toggle('on',b.dataset.sectab===name));
+  document.getElementById('secAuditar').style.display=name==='auditar'?'':'none';
+  document.getElementById('secRoadmap').style.display=name==='roadmap'?'':'none';
+  document.getElementById('secBlindaje').style.display=name==='blindaje'?'':'none';
+  if(name==='roadmap')renderSecRoadmap();
+  if(name==='blindaje')renderBlindaje();
+}
+document.querySelectorAll('#secTabs [data-sectab]').forEach(b=>b.addEventListener('click',()=>secTab(b.dataset.sectab)));
+document.getElementById('secBtn').addEventListener('click',auditSecurity);
+document.getElementById('secUrl').addEventListener('keydown',e=>{if(e.key==='Enter')auditSecurity();});
 
 /* ===== arranque ===== */
 renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
