@@ -237,6 +237,8 @@
   .gloss:hover{background:var(--brand);color:#15131f}
   .sev{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:999px;padding:1px 8px;border:1px solid currentColor;margin-left:6px}
   .sev.st-missing{color:var(--bad)} .sev.st-partial{color:var(--warn)} .sev.st-info{color:var(--ink-dim)}
+  .secpill{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;border:1px solid currentColor;border-radius:999px;padding:3px 10px}
+  .secpill .i{width:13px;height:13px}
   .typebar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:6px}
   .typebadge{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:6px 13px}
   .typebadge .i{color:var(--brand)}
@@ -725,16 +727,21 @@ function renderDashboard(){
   const grid=document.getElementById('projGrid');
   grid.innerHTML=Object.entries(DB.projects).map(([id,p])=>{
     const pr=projProgress(p);const cur=id===DB.activeId;const ty=detectType(p.fields);
+    const sa=p.secAudit;
+    const secCol=sa?(sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)'):'var(--ink-dim)';
+    const secPill=sa?`<span class="secpill" style="color:${secCol};border-color:${secCol}" title="Última auditoría de seguridad${sa.repo?' de '+esc(sa.repo):''}">${ic('shield')} Seguridad ${sa.pct}%${sa.crit?' · '+sa.crit+' crítico'+(sa.crit>1?'s':''):''}</span>`:'';
     return `<div class="pjcard ${cur?'cur':''}">${cur?'<span class="curtag">● ACTIVO</span>':''}
       <h3>${esc(p.name)}</h3>
       <div class="meta">${ty.e} ${ty.label} · creado ${new Date(p.createdAt).toLocaleDateString('es')} · ${p.generated?'mapa generado':'sin mapa aún'}</div>
       <div class="desc">${p.fields.que?esc(p.fields.que):'<i style="color:var(--ink-dim)">Aún sin descripción</i>'}</div>
       <div class="progwrap"><div class="progbar" style="width:${pr.pct}%"></div></div>
       <div class="hint">${pr.done}/${pr.total} pasos (${pr.pct}%)${p.notes?' · con notas':''}</div>
-      <div class="row" style="margin-top:12px"><button class="btn sm" data-open="${id}">Abrir</button><button class="btn ghost sm" data-rm="${id}">Roadmap</button><button class="btn danger sm" data-del="${id}">Eliminar</button></div></div>`;
+      ${sa?`<div style="margin-top:9px">${secPill}</div>`:''}
+      <div class="row" style="margin-top:12px"><button class="btn sm" data-open="${id}">Abrir</button><button class="btn ghost sm" data-rm="${id}">Roadmap</button>${sa?`<button class="btn ghost sm" data-sec="${id}">Seguridad</button>`:''}<button class="btn danger sm" data-del="${id}">Eliminar</button></div></div>`;
   }).join('');
   grid.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{DB.activeId=b.dataset.open;saveDB();loadForm();refreshChrome();go('proyecto');}));
   grid.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{DB.activeId=b.dataset.rm;saveDB();loadForm();refreshChrome();go('roadmap');}));
+  grid.querySelectorAll('[data-sec]').forEach(b=>b.addEventListener('click',()=>{DB.activeId=b.dataset.sec;saveDB();loadForm();refreshChrome();go('seguridad');}));
   grid.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{if(projCount()<=1){showToast('Necesitas al menos un proyecto');return;}const p=DB.projects[b.dataset.del];if(!confirm('¿Eliminar "'+p.name+'"?'))return;delete DB.projects[b.dataset.del];if(DB.activeId===b.dataset.del)DB.activeId=Object.keys(DB.projects)[0];saveDB();renderDashboard();refreshChrome();showToast('Eliminado');}));
 }
 
@@ -2045,6 +2052,8 @@ function renderSecReport(ctx){
   const pct=t?Math.round(s/t*100):100;
   const lvl=crit.length?{t:'Riesgo alto — corrige lo crítico ya',c:'var(--bad)'}:pct>=80?{t:'Buena base de seguridad',c:'var(--ok)'}:{t:'Mejorable — revisa los puntos',c:'var(--warn)'};
   LAST_SEC={name:ctx.name,pct,crit:crit.length};
+  // guarda el resultado en el proyecto activo para mostrarlo en "Mis proyectos"
+  if(typeof active==='function'&&active()){active().secAudit={pct,crit:crit.length,repo:ctx.name,at:Date.now()};saveDB();}
   const ord=[...checks].sort((a,b)=>(SEV_ORDER[a.sev]??9)-(SEV_ORDER[b.sev]??9));
   document.getElementById('secResult').innerHTML=`
    <div class="card"><div class="score-ring">
