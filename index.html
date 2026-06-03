@@ -142,6 +142,8 @@
   .nextstep .ns-act{margin-top:11px;display:flex;gap:9px;flex-wrap:wrap}
   .nextstep .miniprog{margin-top:11px}
   .nextstep .miniprog .progwrap{margin:5px 0 0}
+  .ns-sec{display:flex;align-items:center;gap:9px;margin-top:12px;padding:9px 12px;border:1px solid var(--line);border-left-width:2px;border-radius:8px;background:var(--bg-soft);font-size:12.7px}
+  .ns-sec .i{width:16px;height:16px;flex:none}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;background:var(--ok);color:#04210f;font-weight:700;font-size:13px;padding:10px 18px;border-radius:999px;transition:.25s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:50}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .out{display:none}.out.show{display:block;animation:fade .4s}
@@ -1098,9 +1100,17 @@ function renderHome(){
       acts=btn('dispositivos','Llevar a dispositivos')+btn('analizar','Analizar mi código',true);
     }
   }
+  // Línea de seguridad: si el proyecto fue auditado, muéstrala (y prioriza si hay críticos)
+  const sa=a.secAudit;
+  let secHtml='';
+  if(sa){
+    const col=sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)';
+    const txt=sa.crit?`Seguridad: ${sa.pct}% · ${sa.crit} punto${sa.crit>1?'s':''} crítico${sa.crit>1?'s':''} por corregir`:`Seguridad: ${sa.pct}% — sin puntos críticos`;
+    secHtml=`<div class="ns-sec" style="border-color:${col}"><span class="i" style="color:${col}"><svg viewBox="0 0 24 24">${ICONS.shield}</svg></span><span style="color:${col};font-weight:600">${txt}</span><button class="btn ghost sm" data-go="seguridad" style="margin-left:auto">Ver seguridad</button></div>`;
+  }
   box.innerHTML=`<div class="nextstep"><div class="ns-ic"><span class="i"><svg viewBox="0 0 24 24">${ICONS[ic_]||ICONS.spark}</svg></span></div>
     <div style="flex:1"><div class="ns-lbl">${lbl}</div><h3>${title}</h3><p>${desc}</p>
-    <div class="ns-act">${acts}</div></div></div>`;
+    <div class="ns-act">${acts}</div>${secHtml}</div></div>`;
   // los botones nuevos necesitan su listener (se recrean en cada render)
   box.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 }
