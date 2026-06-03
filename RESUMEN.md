@@ -33,11 +33,17 @@ entiende, para planear, construir y publicar una app.
 5. **Llevar a dispositivos** — Checklist por plataforma (web, Android, iPhone, tablet)
    con pasos y prompts. Avance guardado por proyecto.
 6. **Analizar una app** — Pega un repo de GitHub y lo audita (ver detalle abajo).
-7. **Mapa de arquitectura** — Explica las capas (frontend/backend/BD/deploy) con la
+7. **Seguridad** — Auditoría de seguridad del repo + roadmap de seguridad + recomendaciones
+   de blindaje (ver detalle abajo).
+8. **Mapa de arquitectura** — Explica las capas (frontend/backend/BD/deploy) con la
    analogía del restaurante.
-8. **Diccionario** — Términos técnicos con analogías de la vida real + buscador.
-9. **Prompts para Claude** — Plantillas listas para copiar + 5 reglas de oro.
-10. **Errores comunes** — Errores típicos de vibecoding y cómo resolverlos.
+9. **Diccionario** — Términos técnicos con analogías de la vida real + buscador.
+10. **Prompts para Claude** — Plantillas listas para copiar + 5 reglas de oro.
+11. **Errores comunes** — Errores típicos de vibecoding y cómo resolverlos.
+
+> El **% de seguridad** de cada proyecto (tras auditarlo) aparece en tres lugares:
+> dentro de la sección Seguridad, como insignia en "Mis proyectos" y en la tarjeta
+> "Tu siguiente paso" del Inicio. Viaja también en los respaldos.
 
 ---
 
@@ -62,7 +68,29 @@ Pega un repositorio público de GitHub y:
 
 ---
 
-## 4. Principios de diseño que seguimos
+## 4. La sección de Seguridad
+
+Tres pestañas:
+
+- **Auditar mi repo** — escanea los archivos buscando problemas reales: **secretos
+  filtrados** (claves de OpenAI, Anthropic, AWS, Google/Firebase, GitHub, Stripe, JWT,
+  claves privadas, contraseñas), `.env` subido, `.gitignore`, dependencias, autenticación,
+  validación de entradas (inyección SQL/XSS), HTTPS/cabeceras y **protección de APIs de IA**
+  (solo si detecta uso de IA). Da un **% de seguridad**, gravedad por hallazgo
+  (Crítico/Alto/Medio), cómo corregir con pasos y prompts copiables.
+- **Roadmap de seguridad** — checklist de 10 medidas (de la más crítica a la menos), cada
+  una con su prompt; avance guardado por proyecto.
+- **Recomendaciones de blindaje** — buenas prácticas por área, con foco en **evitar el
+  abuso de APIs de IA**. Regla de oro: *la clave nunca en el navegador + límites de uso
+  (rate limiting) + tope de gasto en el proveedor*.
+
+> Alcance honesto: el escáner detecta secretos por **patrón de formato** (muy fiable para
+> claves conocidas) y revisa hasta ~45 archivos por repo. No reemplaza una auditoría
+> profesional, pero atrapa los errores más comunes y peligrosos del vibecoding.
+
+---
+
+## 5. Principios de diseño que seguimos
 
 - **Lenguaje sin tecnicismos**, todo en español, con analogías.
 - **Honestidad**: si algo no se puede verificar automáticamente, lo dice ("no pude
@@ -73,7 +101,7 @@ Pega un repositorio público de GitHub y:
 
 ---
 
-## 5. Historial de versiones (commits)
+## 6. Historial de versiones (commits)
 
 | Commit | Qué incluyó |
 |--------|-------------|
@@ -81,20 +109,23 @@ Pega un repositorio público de GitHub y:
 | `373682b` | **Inicio para principiantes** — tarjeta "siguiente paso" dinámica y dos caminos claros de entrada; conexión entre secciones. |
 | `d5422a1` | **Costos honestos** (incluye el costo real de la IA y aviso de tiempo/límites) + **diccionario en contexto** (chip "?" en cada tecnología del ranking). |
 | `42ce514` | **Fusión de las dos vistas de dispositivo** del analizador en una sola (quita duplicado); elimina código muerto. |
+| `99c9551` | **Sección de Seguridad** — auditoría de repo (secretos, .env, deps, auth, inyección, IA), roadmap de seguridad y recomendaciones de blindaje (incl. anti-abuso de APIs de IA). |
+| `0afb52b` | **% de seguridad en "Mis proyectos"** — insignia por tarjeta con color según riesgo y botón directo. |
+| `7929ec9` | **% de seguridad en el Inicio** y confirmación de que viaja en los respaldos. |
 
 ---
 
-## 6. Pendientes opcionales (de bajo impacto)
+## 7. Pendientes opcionales (de bajo impacto)
 
 - Colapsar la sección "Diseño y contexto" del formulario (15 campos es largo).
 - Enlaces a documentación real (Vercel, Supabase) dentro de los pasos.
-- Dividir `index.html` (~1900 líneas) en varios archivos para mantenimiento más seguro.
+- Dividir `index.html` (~2000 líneas) en varios archivos para mantenimiento más seguro.
 
 > La app ya cumple bien su objetivo; estos pendientes son mejoras, no necesidades.
 
 ---
 
-## 7. Cómo verificamos cada cambio
+## 8. Cómo verificamos cada cambio
 
 Como la app es un solo HTML, validamos cada mejora ejecutando su JavaScript real en un
 DOM simulado con Node (sintaxis, flujos, lógica del analizador contra repos reales de
