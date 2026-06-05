@@ -43,25 +43,43 @@
   .opt.best .medal-n{color:var(--brand);border-color:rgba(155,140,255,.4);background:var(--accent-soft)}
   .st-ok{color:var(--ok)} .st-partial{color:var(--warn)} .st-missing{color:var(--bad)} .st-info{color:var(--ink-dim)}
   a{color:var(--ink);text-decoration:none}
-  .wrap{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
-  aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--bg-soft);border-right:1px solid var(--line);padding:24px 14px}
-  .brand{display:flex;align-items:center;gap:11px;margin:6px 10px 26px}
-  .logo{width:34px;height:34px;border-radius:9px;flex:none;display:grid;place-items:center;background:var(--panel);border:1px solid var(--line);color:var(--brand)}
-  .logo svg{width:18px;height:18px}
-  .brand b{font-size:14px;display:block;font-weight:600;letter-spacing:-.02em} .brand span{font-size:11px;color:var(--ink-dim)}
+  .wrap{display:grid;grid-template-columns:64px 1fr;min-height:100vh;transition:grid-template-columns var(--t)}
+  .wrap.exp{grid-template-columns:230px 1fr}
+  aside{position:sticky;top:0;height:100vh;overflow:hidden;background:var(--bg);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column}
+  .brand{display:flex;align-items:center;gap:11px;margin:0 0 20px}
+  .logo{width:40px;height:40px;border-radius:var(--r);flex:none;display:grid;place-items:center;border:1px solid var(--line);color:var(--ink-soft);background:transparent}
+  .logo svg{width:19px;height:19px}
+  .brand-txt{opacity:0;transition:opacity var(--t);white-space:nowrap}
+  .wrap.exp .brand-txt{opacity:1}
+  .brand b{font-size:13.5px;display:block;font-weight:600;letter-spacing:-.02em}
+  .brand span{font-size:10.5px;color:var(--ink-dim)}
   nav{display:flex;flex-direction:column;gap:1px}
-  .nav-h{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:var(--ink-dim);margin:22px 12px 8px;font-weight:600}
-  .nav-b{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;background:transparent;border:0;color:var(--ink-soft);font:inherit;font-size:13px;padding:8px 12px;border-radius:8px;transition:background .15s,color .15s}
-  .nav-b .ic{width:18px;height:18px;flex:none;display:grid;place-items:center;color:var(--ink-dim);transition:color .15s}
+  .nav-h{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--ink-dim);margin:16px 11px 6px;white-space:nowrap;opacity:0;transition:opacity var(--t)}
+  .wrap.exp .nav-h{opacity:1}
+  .nav-b{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:0;color:var(--ink-dim);font:inherit;font-size:12.5px;padding:9px 11px;border-radius:var(--r);white-space:nowrap;transition:color var(--t),background var(--t)}
+  .nav-b .num{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;width:18px;flex:none;text-align:right;opacity:0;transition:opacity var(--t)}
+  .nav-b .lbl{opacity:0;transition:opacity var(--t)}
+  .wrap.exp .nav-b .num,.wrap.exp .nav-b .lbl{opacity:1}
+  .nav-b .ic{width:18px;height:18px;flex:none;display:grid;place-items:center;color:inherit}
   .nav-b .ic svg{width:17px;height:17px;display:block}
-  .nav-b:hover{background:var(--panel);color:var(--ink)} .nav-b:hover .ic{color:var(--ink-soft)}
-  .nav-b.on{background:var(--panel);color:var(--ink);font-weight:500} .nav-b.on .ic{color:var(--brand)}
-  .side-active{margin:14px 8px 0;font-size:11px;color:var(--ink-dim)} .side-active b{color:var(--brand-2);display:block;font-size:12.5px;margin-top:2px}
-  .side-foot{margin:18px 8px 6px;font-size:11px;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:14px}
+  .nav-b:hover{color:var(--ink-soft);background:var(--panel-2)}
+  .nav-b.on{color:var(--ink)}
+  .nav-b.on .ic{color:var(--accent);filter:drop-shadow(0 0 6px var(--accent-glow))}
+  .side-active{margin:14px 9px 0;font-size:10.5px;color:var(--ink-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity var(--t)}
+  .wrap.exp .side-active{opacity:1}
+  .side-active b{color:var(--ink-soft);display:block;font-size:12px;margin-top:2px;font-weight:500}
+  .side-foot{margin:14px 9px 6px;font-size:10.5px;color:var(--ink-dim);border-top:1px solid var(--line);padding-top:12px;white-space:normal;opacity:0;transition:opacity var(--t)}
+  .wrap.exp .side-foot{opacity:1}
+  .theme-btn{display:flex;align-items:center;gap:12px;width:100%;margin-top:auto;border:1px solid var(--line);background:transparent;color:var(--ink-dim);font:inherit;font-size:11.5px;padding:9px 11px;border-radius:var(--r);cursor:pointer;white-space:nowrap;transition:all var(--t)}
+  .theme-btn:hover{color:var(--ink-soft);border-color:var(--line-strong)}
+  .theme-btn .i{width:15px;height:15px;flex:none}
+  .theme-btn .lbl{opacity:0;transition:opacity var(--t)}
+  .wrap.exp .theme-btn .lbl{opacity:1}
   main{padding:38px 46px 90px;max-width:1080px}
   .page{display:none;animation:fade .35s ease} .page.on{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-  .eyebrow{color:var(--ink-dim);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase}
+  .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:2.5px;color:var(--ink-dim);text-transform:uppercase;font-weight:400}
+  .eyebrow b{color:var(--accent);font-weight:500}
   h1{font-size:29px;line-height:1.2;margin:10px 0 12px;letter-spacing:-.03em;font-weight:600}
   h2{font-size:19px;margin:34px 0 14px;font-weight:600;letter-spacing:-.02em} h3{font-size:15px;margin:0 0 6px;font-weight:600}
   .lead{color:var(--ink-soft);font-size:15px;max-width:720px} p{color:var(--ink-soft)}
@@ -263,30 +281,34 @@
   .typefacts{display:flex;gap:7px;flex-wrap:wrap}
   .fact{font-size:11.5px;color:var(--ink-soft);background:var(--bg-soft);border:1px solid var(--line);border-radius:7px;padding:4px 9px}
   .fact b{color:var(--ink)}
-  @media(max-width:820px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:22px 18px 80px}.mtop{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.mtop .nav-b{white-space:nowrap}}
+  @media(max-width:820px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:22px 18px 80px}.mtop{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.mtop .nav-b{white-space:nowrap}.mtop .nav-b .lbl{opacity:1}.mtop .nav-b .num{display:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <aside>
-    <div class="brand"><div class="logo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.2 5-5 2.2 2.2-5z"/></svg></div><div><b>Mapa de Apps</b><span>Tu copiloto de vibecoding</span></div></div>
+    <div class="brand"><div class="logo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.2 5-5 2.2 2.2-5z"/></svg></div><div class="brand-txt"><b>Mapa de Apps</b><span>Tu copiloto de vibecoding</span></div></div>
     <nav id="nav">
       <div class="nav-h">Empieza aquí</div>
-      <button class="nav-b on" data-go="inicio"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg></span> Inicio</button>
-      <button class="nav-b" data-go="dashboard"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span> Mis proyectos</button>
-      <button class="nav-b" data-go="proyecto"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></span> Proyecto actual</button>
-      <button class="nav-b" data-go="roadmap"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.4 6H15a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6.6"/></svg></span> Roadmap del proyecto</button>
-      <button class="nav-b" data-go="dispositivos"><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="12.5" height="9" rx="1.5"/><path d="M6 17.5h6.5"/><rect x="16.5" y="9" width="5" height="9" rx="1.2"/></svg></span> Llevar a dispositivos</button>
-      <button class="nav-b" data-go="analizar"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16.5 16.5"/></svg></span> Analizar una app</button>
-      <button class="nav-b" data-go="seguridad"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/></svg></span> Seguridad</button>
+      <button class="nav-b on" data-go="inicio"><span class="num">01</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V20h13V9.5"/></svg></span><span class="lbl">Inicio</span></button>
+      <button class="nav-b" data-go="dashboard"><span class="num">02</span><span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></span><span class="lbl">Mis proyectos</span></button>
+      <button class="nav-b" data-go="proyecto"><span class="num">03</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></span><span class="lbl">Proyecto actual</span></button>
+      <button class="nav-b" data-go="roadmap"><span class="num">04</span><span class="ic"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.4 6H15a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h6.6"/></svg></span><span class="lbl">Roadmap del proyecto</span></button>
+      <button class="nav-b" data-go="dispositivos"><span class="num">05</span><span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="12.5" height="9" rx="1.5"/><path d="M6 17.5h6.5"/><rect x="16.5" y="9" width="5" height="9" rx="1.2"/></svg></span><span class="lbl">Llevar a dispositivos</span></button>
+      <button class="nav-b" data-go="analizar"><span class="num">06</span><span class="ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16.5 16.5"/></svg></span><span class="lbl">Analizar una app</span></button>
+      <button class="nav-b" data-go="seguridad"><span class="num">07</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/></svg></span><span class="lbl">Seguridad</span></button>
       <div class="nav-h">La guía</div>
-      <button class="nav-b" data-go="arquitectura"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></span> Mapa de arquitectura</button>
-      <button class="nav-b" data-go="diccionario"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4.5h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M18 16.5H7a2 2 0 0 0-2 2"/></svg></span> Diccionario</button>
-      <button class="nav-b" data-go="prompts"><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5z"/></svg></span> Prompts para Claude</button>
-      <button class="nav-b" data-go="errores"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4 21 20H3z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg></span> Errores comunes</button>
+      <button class="nav-b" data-go="arquitectura"><span class="num">08</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></span><span class="lbl">Mapa de arquitectura</span></button>
+      <button class="nav-b" data-go="diccionario"><span class="num">09</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4.5h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M18 16.5H7a2 2 0 0 0-2 2"/></svg></span><span class="lbl">Diccionario</span></button>
+      <button class="nav-b" data-go="prompts"><span class="num">10</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5z"/></svg></span><span class="lbl">Prompts para Claude</span></button>
+      <button class="nav-b" data-go="errores"><span class="num">11</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4 21 20H3z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg></span><span class="lbl">Errores comunes</span></button>
     </nav>
     <div class="side-active">Proyecto activo:<b id="sideActive">—</b></div>
     <div class="side-foot">Hecho para personas con ideas, no con conocimientos de código. Todo se guarda en tu navegador.</div>
+    <button class="theme-btn" onclick="toggleTheme()" title="Cambiar tema">
+      <span class="i"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg></span>
+      <span class="lbl" id="themeLabel">Tema claro</span>
+    </button>
   </aside>
 
   <main>
@@ -294,7 +316,7 @@
 
     <!-- INICIO -->
     <section class="page on" id="inicio">
-      <span class="eyebrow">Bienvenido</span>
+      <div class="eyebrow"><b>01</b> / Bienvenido</div>
       <h1>De la idea a la app, sin perderte en el camino.</h1>
       <p class="lead">Una guía para personas con <b>ideas</b>, no con conocimientos de código. Aquí planeas, sigues el paso a paso y aprendes a dirigir a Claude para construir tu app.</p>
 
@@ -335,7 +357,7 @@
 
     <!-- DASHBOARD -->
     <section class="page" id="dashboard">
-      <span class="eyebrow">Tus ideas</span>
+      <div class="eyebrow"><b>02</b> / Tus ideas</div>
       <h1>Mis proyectos</h1>
       <p class="lead">Crea y administra todas tus apps. Cada una guarda su descripción, stack, notas y avance por separado.</p>
       <div class="row" style="margin:18px 0 6px">
@@ -349,7 +371,7 @@
 
     <!-- PROYECTO ACTUAL -->
     <section class="page" id="proyecto">
-      <span class="eyebrow">Asistente</span>
+      <div class="eyebrow"><b>03</b> / Asistente</div>
       <h1>Proyecto actual</h1>
       <div class="pbar">
         <span class="lbl">Trabajando en:</span>
@@ -436,7 +458,7 @@
 
     <!-- ROADMAP -->
     <section class="page" id="roadmap">
-      <span class="eyebrow">La ruta, adaptada a ti</span>
+      <div class="eyebrow"><b>04</b> / La ruta, adaptada a ti</div>
       <h1>Roadmap del proyecto</h1>
       <p class="lead">Avance de <b id="rmProjName">—</b> <span id="rmTypeTag"></span>. Cada paso trae explicación, herramientas y un ejemplo pensado para tu tipo de app.</p>
       <div class="nextbanner" id="nextBanner"></div>
@@ -447,7 +469,7 @@
 
     <!-- ANALIZAR -->
     <section class="page" id="analizar">
-      <span class="eyebrow">Auditoría</span>
+      <div class="eyebrow"><b>06</b> / Auditoría</div>
       <h1>Analizar una app existente</h1>
       <p class="lead">Pega un repositorio de GitHub y reviso tu app contra todo el ciclo de vida. Detecto <b>qué tipo de proyecto es</b> y te digo <b>qué ya tienes, qué está a medias y qué falta</b> — cada carencia con <b>cómo solucionarla, opciones y ejemplos</b>.</p>
       <div class="an-modes">
@@ -475,7 +497,7 @@
 
     <!-- SEGURIDAD -->
     <section class="page" id="seguridad">
-      <span class="eyebrow">Blindaje</span>
+      <div class="eyebrow"><b>07</b> / Blindaje</div>
       <h1>Seguridad de tu app</h1>
       <p class="lead">Lo que más se descuida en vibecoding. Aquí <b>escaneo tu repo</b> en busca de fallos reales (claves expuestas, archivos peligrosos…), te doy un <b>roadmap de seguridad</b> con checklist, y <b>recomendaciones de blindaje</b> contra ataques y abuso de APIs de IA — todo con cómo corregirlo y prompts.</p>
       <div class="an-modes" id="secTabs">
@@ -504,7 +526,7 @@
 
     <!-- DISPOSITIVOS -->
     <section class="page" id="dispositivos">
-      <span class="eyebrow">Multiplataforma</span>
+      <div class="eyebrow"><b>05</b> / Multiplataforma</div>
       <h1>Llevar a dispositivos</h1>
       <p class="lead">El camino para que tu app funcione en <b>iPhone, Android, tablet y web</b>. Elige el dispositivo, sigue su checklist y copia los prompts. Tu avance se guarda por proyecto.</p>
       <div class="pbar">
@@ -518,7 +540,7 @@
 
     <!-- ARQUITECTURA -->
     <section class="page" id="arquitectura">
-      <span class="eyebrow">El plano</span>
+      <div class="eyebrow"><b>08</b> / El plano</div>
       <h1>Mapa de arquitectura</h1>
       <p class="lead">Toda app tiene estas capas. Piénsalo como un restaurante: un <b>salón</b> (lo que ve el cliente), una <b>cocina</b> (procesa) y una <b>despensa</b> (guarda).</p>
       <div class="diagram" style="margin-top:20px">
@@ -535,7 +557,7 @@
 
     <!-- DICCIONARIO -->
     <section class="page" id="diccionario">
-      <span class="eyebrow">Traductor</span>
+      <div class="eyebrow"><b>09</b> / Traductor</div>
       <h1>Diccionario sin tecnicismos</h1>
       <p class="lead">Cada palabra rara explicada con una analogía de la vida real.</p>
       <div class="search"><input id="dictSearch" placeholder="Busca un término..."></div>
@@ -545,7 +567,7 @@
 
     <!-- PROMPTS -->
     <section class="page" id="prompts">
-      <span class="eyebrow">El idioma de Claude</span>
+      <div class="eyebrow"><b>10</b> / El idioma de Claude</div>
       <h1>Prompts listos para copiar</h1>
       <p class="lead">Frases probadas. Copia, pega, ajusta lo que está <b>[entre corchetes]</b>.</p>
       <div id="promptList" style="margin-top:8px"></div>
@@ -561,7 +583,7 @@
 
     <!-- ERRORES -->
     <section class="page" id="errores">
-      <span class="eyebrow">Evita tropezar</span>
+      <div class="eyebrow"><b>11</b> / Evita tropezar</div>
       <h1>Errores comunes (y cómo resolverlos)</h1>
       <p class="lead">Lo que casi todos hacen mal al empezar con vibecoding.</p>
       <div id="mistakeList" style="margin-top:8px"></div>
@@ -586,7 +608,7 @@ function go(id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
-document.getElementById('mtop').innerHTML=[...document.querySelectorAll('#nav .nav-b')].map(b=>`<button class="nav-b ${b.classList.contains('on')?'on':''}" data-go="${b.dataset.go}"><span class="ic">${b.querySelector('.ic').innerHTML}</span> ${b.textContent.trim()}</button>`).join('');
+document.getElementById('mtop').innerHTML=[...document.querySelectorAll('#nav .nav-b')].map(b=>`<button class="nav-b ${b.classList.contains('on')?'on':''}" data-go="${b.dataset.go}"><span class="ic">${b.querySelector('.ic').innerHTML}</span> <span class="lbl">${(b.querySelector('.lbl')||{textContent:b.textContent}).textContent.trim()}</span></button>`).join('');
 document.querySelectorAll('#mtop .nav-b').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
 
 /* ===== toast + copiar ===== */
@@ -2228,6 +2250,14 @@ renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
     const l=document.getElementById('themeLabel');
     if(l)l.textContent=h.dataset.theme==='dark'?'Tema claro':'Tema oscuro';
   };
+})();
+
+/* ===== riel colapsable ===== */
+(function(){
+  const w=document.querySelector('.wrap'),a=document.querySelector('aside');
+  if(!w||!a)return;
+  a.addEventListener('mouseenter',()=>w.classList.add('exp'));
+  a.addEventListener('mouseleave',()=>w.classList.remove('exp'));
 })();
 </script>
 </body>
