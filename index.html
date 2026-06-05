@@ -654,7 +654,7 @@ function loadDB(){
   const oldRm=JSON.parse(localStorage.getItem('mapa_roadmap_v1')||'{}');
   db={activeId:null,projects:{}};
   if(old){const id=uid();const f=blankFields();FIELDS.forEach(k=>{if(old[k]!==undefined)f[k]=old[k];});
-    db.projects[id]={name:(old.que||'Mi primer proyecto').slice(0,42),createdAt:Date.now(),fields:f,roadmap:oldRm,notes:'',generated:!!old.que};db.activeId=id;}
+    db.projects[id]={name:truncName(old.que||'Mi primer proyecto'),createdAt:Date.now(),fields:f,roadmap:oldRm,notes:'',generated:!!old.que};db.activeId=id;}
   return db;
 }
 let DB=loadDB();
@@ -727,6 +727,8 @@ document.getElementById('newProjBtn').addEventListener('click',()=>{newProject()
 function projProgress(p){const total=PHASES.reduce((a,ph)=>a+ph.tasks.length,0);const done=Object.values(p.roadmap||{}).filter(Boolean).length;return {done,total,pct:Math.round(done/total*100)};}
 // color del nivel de seguridad — único lugar donde viven los umbrales (dashboard, inicio y reporte lo comparten)
 function secColor(sa){return sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)';}
+// recorta nombres largos en una palabra completa y con elipsis (evita "…apunta los libros q")
+function truncName(s){s=(s||'').trim();if(s.length<=42)return s;const cut=s.slice(0,42);const i=cut.lastIndexOf(' ');return (i>20?cut.slice(0,i):cut)+'…';}
 function renderDashboard(){
   const grid=document.getElementById('projGrid');
   grid.innerHTML=Object.entries(DB.projects).map(([id,p])=>{
@@ -885,7 +887,7 @@ function generate(silent){
   const v=readForm();
   if(!v.que.trim()){showToast('Escribe primero qué hace tu app');return;}
   active().fields=v;active().generated=true;
-  if(active().name.startsWith('Proyecto ')) active().name=v.que.slice(0,42);
+  if(active().name.startsWith('Proyecto ')) active().name=truncName(v.que);
   saveDB();renderSwitch();refreshChrome();
   const needsBackend=v.datos==='nube'||v.login==='si',needsDB=v.datos!=='no';
   const platform={web:'Aplicación web (navegador)',movil:'App móvil',ambos:'Web + móvil',nose:'Web (recomendado para empezar)'}[v.donde];
@@ -2007,7 +2009,7 @@ function secChecks(ctx){
         steps:['Entra al panel del servicio (OpenAI, Stripe, etc.) y REVOCA/regenera esas claves ya.','Mueve las claves a un archivo .env (que NO se sube).','Agrega .env al .gitignore.','Borra las claves del historial de Git (o, si es posible, recrea el repo limpio).'],
         prompt:'"Tengo claves de API expuestas en mi repositorio: '+findings.map(f=>f.name).join(', ')+'. Explícame paso a paso, sin asumir que sé programar: 1) cómo revocarlas y crear nuevas, 2) cómo moverlas a variables de entorno (.env), 3) cómo asegurarme de que no vuelvan a subirse, y 4) cómo limpiarlas del historial de Git."'}]);
   } else {
-    P('Claves o secretos en el código','ok','No detecté patrones de claves filtradas en los archivos revisados ('+ctx.scannedCount+').','');
+    P('Claves o secretos en el código','ok','No detecté patrones de claves filtradas en '+(ctx.scannedCount===1?'el archivo revisado':'los '+ctx.scannedCount+' archivos revisados')+'.','');
   }
   // 2. .env subido
   P('Archivo .env en el repositorio',envCommitted?'missing':'ok',
@@ -2089,7 +2091,7 @@ function renderSecReport(ctx){
    <div class="card"><div class="score-ring">
      <div class="ring" style="--p:${pct}"><b>${pct}%</b><small>seguro</small></div>
      <div><div class="hint" style="margin:0">Auditoría de seguridad de</div><h2 style="margin:2px 0 6px">${esc(ctx.name)}</h2><div class="level" style="color:${lvl.c}">${lvl.t}</div>
-     <p style="font-size:12.5px;margin:6px 0 0">Revisé ${ctx.scannedCount} archivos en busca de secretos, además de configuración y dependencias.</p></div>
+     <p style="font-size:12.5px;margin:6px 0 0">Revisé ${ctx.scannedCount} archivo${ctx.scannedCount===1?'':'s'} en busca de secretos, además de configuración y dependencias.</p></div>
    </div></div>
    ${ctx.findings.length?`<div class="card" style="border-color:rgba(224,122,133,.5)"><div class="miss"><b>${ic('alert')} ¡Atención! Posibles claves expuestas</b><br>${ctx.findings.map(f=>esc(f.name)+' → <code>'+esc(f.file)+'</code>').join('<br>')}<br><br>Trátalas como comprometidas: revócalas y crea nuevas. Abajo te explico cómo.</div></div>`:''}
    <h2>${ic('shield')}Resultados (de mayor a menor riesgo)</h2>
