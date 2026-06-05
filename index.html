@@ -59,9 +59,8 @@
   .nav-h{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--ink-dim);margin:16px 11px 6px;white-space:nowrap;opacity:0;transition:opacity var(--t)}
   .wrap.exp .nav-h,.wrap:focus-within .nav-h{opacity:1}
   .nav-b{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;background:transparent;border:0;color:var(--ink-dim);font:inherit;font-size:12.5px;padding:9px 11px;border-radius:var(--r);white-space:nowrap;transition:color var(--t),background var(--t)}
-  /* colapsado: el número no debe ocupar espacio (empujaba el icono fuera del riel de 64px) */
-  .nav-b .num{font-family:var(--mono);font-size:9.5px;letter-spacing:.5px;width:0;margin-right:-12px;overflow:hidden;flex:none;text-align:right;opacity:0;transition:opacity var(--t),width var(--t),margin-right var(--t)}
-  .wrap.exp .nav-b .num,.wrap:focus-within .nav-b .num{width:18px;margin-right:0}
+  /* sin números en el menú: los iconos no se desplazan ni colapsado ni expandido */
+  .nav-b .num{display:none}
   .nav-b .lbl{opacity:0;transition:opacity var(--t)}
   .wrap.exp .nav-b .num,.wrap.exp .nav-b .lbl,.wrap:focus-within .nav-b .num,.wrap:focus-within .nav-b .lbl{opacity:1}
   .nav-b .ic{width:18px;height:18px;flex:none;display:grid;place-items:center;color:inherit}
