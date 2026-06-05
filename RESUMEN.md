@@ -95,8 +95,12 @@ Tres pestañas:
 - **Lenguaje sin tecnicismos**, todo en español, con analogías.
 - **Honestidad**: si algo no se puede verificar automáticamente, lo dice ("no pude
   comprobar, ábrelo tú") en vez de inventar. Lo no verificable se confirma a mano.
-- **Estética minimalista**: paleta casi monocromática, iconos SVG de línea de un solo
-  color (sin emojis en la interfaz), superficies planas, tipografía cuidada.
+- **Estética "Precisión"** (futurismo de plano técnico): doble tema claro/oscuro con
+  toggle, un único acento violeta con glow (máx. un protagonista por vista), líneas de
+  1px, datos en monospace, riel de navegación colapsable con numeración 01–11, marcas
+  de registro en las tarjetas. Cada elemento usa un solo color; los estados
+  (ok/alerta/crítico) conservan verde/ámbar/rojo desaturados. Iconos SVG de línea,
+  sin emojis en la interfaz.
 - **Todo se guarda solo** y por proyecto/repo.
 
 ---
@@ -112,6 +116,7 @@ Tres pestañas:
 | `99c9551` | **Sección de Seguridad** — auditoría de repo (secretos, .env, deps, auth, inyección, IA), roadmap de seguridad y recomendaciones de blindaje (incl. anti-abuso de APIs de IA). |
 | `0afb52b` | **% de seguridad en "Mis proyectos"** — insignia por tarjeta con color según riesgo y botón directo. |
 | `7929ec9` | **% de seguridad en el Inicio** y confirmación de que viaja en los respaldos. |
+| `rediseno-precision` | **Rediseño estético "Precisión"** — doble tema claro/oscuro persistente, riel de iconos colapsable con numeración técnica, violeta único con glow, anillo-instrumento con marcas de dial, tarjetas con marcas de registro, inputs de línea inferior, insignias de contorno monospace. Contenido, flujos y lógica intactos; verificado con recorrido completo en navegador en ambos temas (23 checks, 0 errores JS). Spec y plan en `docs/superpowers/`. |
 | `397847a` | **Correcciones de la revisión de código** — detección estricta de `.env` en `.gitignore` (`.env.example` ya no da falsa protección), respaldos validados al importar, progreso del roadmap de seguridad por id estable (con migración automática), colores de seguridad centralizados (`secColor`), auditoría con descargas en paralelo, caché de archivos compartida entre Analizar y Seguridad, y bug visual `${''}` del Inicio. Verificado con recorrido completo en navegador (todas las secciones, análisis y auditoría contra repo real). |
 
 ---
