@@ -112,6 +112,7 @@ Tres pestañas:
 | `99c9551` | **Sección de Seguridad** — auditoría de repo (secretos, .env, deps, auth, inyección, IA), roadmap de seguridad y recomendaciones de blindaje (incl. anti-abuso de APIs de IA). |
 | `0afb52b` | **% de seguridad en "Mis proyectos"** — insignia por tarjeta con color según riesgo y botón directo. |
 | `7929ec9` | **% de seguridad en el Inicio** y confirmación de que viaja en los respaldos. |
+| `397847a` | **Correcciones de la revisión de código** — detección estricta de `.env` en `.gitignore` (`.env.example` ya no da falsa protección), respaldos validados al importar, progreso del roadmap de seguridad por id estable (con migración automática), colores de seguridad centralizados (`secColor`), auditoría con descargas en paralelo, caché de archivos compartida entre Analizar y Seguridad, y bug visual `${''}` del Inicio. Verificado con recorrido completo en navegador (todas las secciones, análisis y auditoría contra repo real). |
 
 ---
 
