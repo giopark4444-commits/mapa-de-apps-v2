@@ -40,6 +40,9 @@ entiende, para planear, construir y publicar una app.
 9. **Diccionario** — Términos técnicos con analogías de la vida real + buscador.
 10. **Prompts para Claude** — Plantillas listas para copiar + 5 reglas de oro.
 11. **Errores comunes** — Errores típicos de vibecoding y cómo resolverlos.
+12. **Ajustes** — Personaliza tema, color de acento, glow, riel (tamaño y comportamiento)
+    y texto (tamaño, tono, contraste). Se aplica al instante y se guarda por dispositivo
+    (no viaja en los respaldos). Botón "Restaurar todo".
 
 > El **% de seguridad** de cada proyecto (tras auditarlo) aparece en tres lugares:
 > dentro de la sección Seguridad, como insignia en "Mis proyectos" y en la tarjeta
@@ -116,6 +119,7 @@ Tres pestañas:
 | `99c9551` | **Sección de Seguridad** — auditoría de repo (secretos, .env, deps, auth, inyección, IA), roadmap de seguridad y recomendaciones de blindaje (incl. anti-abuso de APIs de IA). |
 | `0afb52b` | **% de seguridad en "Mis proyectos"** — insignia por tarjeta con color según riesgo y botón directo. |
 | `7929ec9` | **% de seguridad en el Inicio** y confirmación de que viaja en los respaldos. |
+| `panel-ajustes` | **Sección 12 · Ajustes** — panel de personalización en vivo: tema, 5 acentos, intensidad del glow, riel (iconos y comportamiento), texto (tamaño/tono/contraste); persistido en `maPrefs` con validación; "Restaurar todo". Verificado en navegador (14 checks + persistencia tras recarga, 0 errores JS). |
 | `rediseno-precision` | **Rediseño estético "Precisión"** — doble tema claro/oscuro persistente, riel de iconos colapsable con numeración técnica, violeta único con glow, anillo-instrumento con marcas de dial, tarjetas con marcas de registro, inputs de línea inferior, insignias de contorno monospace. Contenido, flujos y lógica intactos; verificado con recorrido completo en navegador en ambos temas (23 checks, 0 errores JS). Spec y plan en `docs/superpowers/`. |
 | `397847a` | **Correcciones de la revisión de código** — detección estricta de `.env` en `.gitignore` (`.env.example` ya no da falsa protección), respaldos validados al importar, progreso del roadmap de seguridad por id estable (con migración automática), colores de seguridad centralizados (`secColor`), auditoría con descargas en paralelo, caché de archivos compartida entre Analizar y Seguridad, y bug visual `${''}` del Inicio. Verificado con recorrido completo en navegador (todas las secciones, análisis y auditoría contra repo real). |
 

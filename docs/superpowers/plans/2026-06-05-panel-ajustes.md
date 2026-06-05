@@ -239,7 +239,7 @@ function renderAjustes(){
   - Texto "grande" → `document.querySelector('main').style.zoom==='1.1'`.
   - Tono "frío" + contraste "alto" → `--ink` inline contiene `225`.
   - Recargar página → todas las prefs persisten (re-chequear `--accent` y zoom).
-  - "Restaurar todo" → `localStorage.maPrefs` vacío, `--accent` inline eliminado, chips vuelven a defaults.
+  - "Restaurar todo" → `localStorage.maPrefs` vacío, `--accent` inline vuelve al violeta por defecto (`applyPrefs` siempre lo escribe), chips vuelven a defaults.
   - Cambiar tema con prefs de ink activas → los inks se recalculan (valor distinto de `--ink` entre temas).
   - Regresión: las 11 secciones renderizan, 0 errores JS.
 - [ ] **Step 2: Captura** de la sección Ajustes (oscuro) para el usuario.
