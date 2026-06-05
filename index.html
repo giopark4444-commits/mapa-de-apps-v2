@@ -63,7 +63,7 @@
   .nav-b .lbl{opacity:0;transition:opacity var(--t)}
   .wrap.exp .nav-b .num,.wrap.exp .nav-b .lbl,.wrap:focus-within .nav-b .num,.wrap:focus-within .nav-b .lbl{opacity:1}
   .nav-b .ic{width:18px;height:18px;flex:none;display:grid;place-items:center;color:inherit}
-  .nav-b .ic svg{width:17px;height:17px;display:block}
+  .nav-b .ic svg{width:var(--rail-ic,17px);height:var(--rail-ic,17px);display:block}
   .nav-b:hover{color:var(--ink-soft);background:var(--panel-2)}
   .nav-b.on{color:var(--ink)}
   .nav-b.on .ic{color:var(--accent);filter:drop-shadow(0 0 6px var(--accent-glow))}
@@ -295,6 +295,12 @@
   .typefacts{display:flex;gap:7px;flex-wrap:wrap}
   .fact{font-size:11.5px;color:var(--ink-soft);background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--r);padding:4px 9px}
   .fact b{color:var(--ink)}
+  .segrow{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 4px;align-items:center}
+  .seg{font:inherit;font-size:12px;padding:6px 13px;border-radius:var(--r);cursor:pointer;border:1px solid var(--line-strong);background:transparent;color:var(--ink-soft);transition:color var(--t),border-color var(--t)}
+  .seg:hover{color:var(--ink)}
+  .seg.on{color:var(--ink);border-color:var(--accent);box-shadow:0 0 10px var(--accent-glow)}
+  .sw{width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);background:var(--sw);cursor:pointer;padding:0;flex:none}
+  .sw.on{outline:2px solid var(--sw);outline-offset:3px;border-color:transparent}
   @media(max-width:820px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:22px 18px 80px}.mtop{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.mtop .nav-b{white-space:nowrap}.mtop .nav-b .lbl{opacity:1}.mtop .nav-b .num{display:none}}
 </style>
 </head>
@@ -316,6 +322,7 @@
       <button class="nav-b" data-go="diccionario"><span class="num">09</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4.5h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M18 16.5H7a2 2 0 0 0-2 2"/></svg></span><span class="lbl">Diccionario</span></button>
       <button class="nav-b" data-go="prompts"><span class="num">10</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5z"/></svg></span><span class="lbl">Prompts para Claude</span></button>
       <button class="nav-b" data-go="errores"><span class="num">11</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4 21 20H3z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg></span><span class="lbl">Errores comunes</span></button>
+      <button class="nav-b" data-go="ajustes"><span class="num">12</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></svg></span><span class="lbl">Ajustes</span></button>
     </nav>
     <div class="side-active">Proyecto activo:<b id="sideActive">—</b></div>
     <div class="side-foot">Hecho para personas con ideas, no con conocimientos de código. Todo se guarda en tu navegador.</div>
@@ -601,6 +608,42 @@
       <h1>Errores comunes (y cómo resolverlos)</h1>
       <p class="lead">Lo que casi todos hacen mal al empezar con vibecoding.</p>
       <div id="mistakeList" style="margin-top:8px"></div>
+    </section>
+    <!-- AJUSTES -->
+    <section class="page" id="ajustes">
+      <div class="eyebrow"><b>12</b> / A tu gusto</div>
+      <h1>Ajustes</h1>
+      <p class="lead">Personaliza la apariencia de la app. Todo se aplica al instante y se guarda en este dispositivo.</p>
+      <div class="card"><h3>Apariencia</h3>
+        <label>Tema</label>
+        <div class="segrow"><button class="seg" data-pref="theme" data-val="dark">Oscuro</button><button class="seg" data-pref="theme" data-val="light">Claro</button></div>
+        <label>Color de acento</label>
+        <div class="segrow">
+          <button class="sw" data-pref="accent" data-val="violeta" style="--sw:#8b5cf6" title="Violeta"></button>
+          <button class="sw" data-pref="accent" data-val="cian" style="--sw:#06b6d4" title="Cian"></button>
+          <button class="sw" data-pref="accent" data-val="verde" style="--sw:#10b981" title="Verde"></button>
+          <button class="sw" data-pref="accent" data-val="ambar" style="--sw:#f59e0b" title="Ámbar"></button>
+          <button class="sw" data-pref="accent" data-val="rosa" style="--sw:#ec4899" title="Rosa"></button>
+        </div>
+        <label>Intensidad del glow</label>
+        <div class="segrow"><button class="seg" data-pref="glow" data-val="apagado">Apagado</button><button class="seg" data-pref="glow" data-val="suave">Suave</button><button class="seg" data-pref="glow" data-val="normal">Normal</button><button class="seg" data-pref="glow" data-val="fuerte">Fuerte</button></div>
+      </div>
+      <div class="card"><h3>Riel de navegación</h3>
+        <label>Tamaño de iconos</label>
+        <div class="segrow"><button class="seg" data-pref="railIc" data-val="pequeno">Pequeño</button><button class="seg" data-pref="railIc" data-val="normal">Normal</button><button class="seg" data-pref="railIc" data-val="grande">Grande</button></div>
+        <label>Comportamiento</label>
+        <div class="segrow"><button class="seg" data-pref="railMode" data-val="hover">Expandir al pasar</button><button class="seg" data-pref="railMode" data-val="fijo">Siempre expandido</button><button class="seg" data-pref="railMode" data-val="colapsado">Siempre colapsado</button></div>
+      </div>
+      <div class="card"><h3>Texto</h3>
+        <label>Tamaño</label>
+        <div class="segrow"><button class="seg" data-pref="fontZoom" data-val="compacto">Compacto</button><button class="seg" data-pref="fontZoom" data-val="normal">Normal</button><button class="seg" data-pref="fontZoom" data-val="grande">Grande</button></div>
+        <label>Tono del gris</label>
+        <div class="segrow"><button class="seg" data-pref="inkTone" data-val="neutro">Neutro</button><button class="seg" data-pref="inkTone" data-val="calido">Cálido</button><button class="seg" data-pref="inkTone" data-val="frio">Frío</button></div>
+        <label>Contraste</label>
+        <div class="segrow"><button class="seg" data-pref="inkContrast" data-val="suave">Suave</button><button class="seg" data-pref="inkContrast" data-val="normal">Normal</button><button class="seg" data-pref="inkContrast" data-val="alto">Alto</button></div>
+      </div>
+      <div class="row"><button class="btn ghost" id="resetPrefs">Restaurar todo</button></div>
+      <p style="font-size:11.5px;color:var(--ink-dim);margin-top:10px">Estos ajustes se guardan solo en este navegador; no viajan en los respaldos.</p>
     </section>
   </main>
 </div>
@@ -2253,6 +2296,53 @@ document.getElementById('secUrl').addEventListener('keydown',e=>{if(e.key==='Ent
 /* ===== arranque ===== */
 renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
 
+/* ===== preferencias de apariencia (sección Ajustes) ===== */
+const PREF_DEFAULTS={accent:'violeta',glow:'normal',railIc:'normal',railMode:'hover',fontZoom:'normal',inkTone:'neutro',inkContrast:'normal'};
+const PREF_ACCENTS={violeta:[139,92,246],cian:[6,182,212],verde:[16,185,129],ambar:[245,158,11],rosa:[236,72,153]};
+const PREF_GLOWS={apagado:0,suave:.2,normal:.35,fuerte:.55};
+const PREF_RAIL_IC={pequeno:'15px',normal:'17px',grande:'19px'};
+const PREF_ZOOMS={compacto:.92,normal:1,grande:1.1};
+const PREF_VALID={accent:Object.keys(PREF_ACCENTS),glow:Object.keys(PREF_GLOWS),railIc:Object.keys(PREF_RAIL_IC),railMode:['hover','fijo','colapsado'],fontZoom:Object.keys(PREF_ZOOMS),inkTone:['neutro','calido','frio'],inkContrast:['suave','normal','alto']};
+function loadPrefs(){
+  let raw={};try{raw=JSON.parse(localStorage.getItem('maPrefs')||'{}')||{}}catch(_){raw={}}
+  const p={...PREF_DEFAULTS};
+  for(const k in PREF_DEFAULTS){if(PREF_VALID[k].includes(raw[k]))p[k]=raw[k];}
+  return p;
+}
+/* grises del texto según tema × tono × contraste (l de --ink, --ink-soft, --ink-dim) */
+function inkSet(theme,tone,contrast){
+  const hue=tone==='calido'?35:tone==='frio'?225:0, sat=tone==='neutro'?0:6;
+  const L=theme==='dark'
+    ? {suave:[85,58,36],normal:[93,63,40],alto:[100,72,46]}[contrast]
+    : {suave:[18,38,62],normal:[10,33,66],alto:[3,25,55]}[contrast];
+  return L.map(l=>`hsl(${hue} ${sat}% ${l}%)`);
+}
+function applyPrefs(){
+  const p=loadPrefs(), r=document.documentElement, s=r.style;
+  const [cr,cg,cb]=PREF_ACCENTS[p.accent];
+  s.setProperty('--accent',`rgb(${cr} ${cg} ${cb})`);
+  s.setProperty('--accent-glow',`rgba(${cr},${cg},${cb},${PREF_GLOWS[p.glow]})`);
+  s.setProperty('--accent-soft',`rgba(${cr},${cg},${cb},.09)`);
+  s.setProperty('--rail-ic',PREF_RAIL_IC[p.railIc]);
+  const m=document.querySelector('main'); if(m)m.style.zoom=PREF_ZOOMS[p.fontZoom];
+  if(p.inkTone==='neutro'&&p.inkContrast==='normal'){
+    s.removeProperty('--ink');s.removeProperty('--ink-soft');s.removeProperty('--ink-dim');
+  }else{
+    const [i,so,di]=inkSet(r.dataset.theme,p.inkTone,p.inkContrast);
+    s.setProperty('--ink',i);s.setProperty('--ink-soft',so);s.setProperty('--ink-dim',di);
+  }
+  const w=document.querySelector('.wrap');
+  if(w){w.dataset.railmode=p.railMode;w.classList.toggle('exp',p.railMode==='fijo');}
+}
+function setPref(k,v){
+  const p=loadPrefs(); p[k]=v;
+  const out={}; for(const key in p){if(p[key]!==PREF_DEFAULTS[key])out[key]=p[key];}
+  if(Object.keys(out).length)localStorage.setItem('maPrefs',JSON.stringify(out));
+  else localStorage.removeItem('maPrefs');
+  applyPrefs();
+  if(typeof renderAjustes==='function')renderAjustes();
+}
+
 /* ===== tema claro/oscuro ===== */
 (function(){
   const saved=localStorage.getItem('maTheme');
@@ -2264,15 +2354,49 @@ renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
     h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
     localStorage.setItem('maTheme',h.dataset.theme);
     sync();
+    applyPrefs();
+    if(typeof renderAjustes==='function')renderAjustes();
   };
+})();
+applyPrefs();
+
+/* ===== panel de Ajustes ===== */
+function renderAjustes(){
+  const sec=document.getElementById('ajustes'); if(!sec)return;
+  const p=loadPrefs();
+  sec.querySelectorAll('[data-pref]').forEach(b=>{
+    const k=b.dataset.pref;
+    const cur=k==='theme'?document.documentElement.dataset.theme:p[k];
+    b.classList.toggle('on',b.dataset.val===cur);
+  });
+}
+(function(){
+  const sec=document.getElementById('ajustes'); if(!sec)return;
+  sec.addEventListener('click',e=>{
+    const b=e.target.closest('[data-pref]');
+    if(b){
+      if(b.dataset.pref==='theme'){
+        if(document.documentElement.dataset.theme!==b.dataset.val)toggleTheme();
+        renderAjustes();
+      }else setPref(b.dataset.pref,b.dataset.val);
+      return;
+    }
+    if(e.target.closest('#resetPrefs')){
+      localStorage.removeItem('maPrefs');
+      const s=document.documentElement.style;
+      ['--accent','--accent-glow','--accent-soft','--rail-ic','--ink','--ink-soft','--ink-dim'].forEach(v=>s.removeProperty(v));
+      applyPrefs();renderAjustes();showToast('Ajustes restaurados ✓');
+    }
+  });
+  renderAjustes();
 })();
 
 /* ===== riel colapsable ===== */
 (function(){
   const w=document.querySelector('.wrap'),a=document.querySelector('aside');
   if(!w||!a)return;
-  a.addEventListener('mouseenter',()=>w.classList.add('exp'));
-  a.addEventListener('mouseleave',()=>w.classList.remove('exp'));
+  a.addEventListener('mouseenter',()=>{if((w.dataset.railmode||'hover')==='hover')w.classList.add('exp')});
+  a.addEventListener('mouseleave',()=>{if((w.dataset.railmode||'hover')==='hover')w.classList.remove('exp')});
 })();
 </script>
 </body>
