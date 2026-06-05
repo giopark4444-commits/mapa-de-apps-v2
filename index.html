@@ -289,7 +289,7 @@
       <p style="font-size:13.5px;margin-top:-6px">Elige según tu situación. Puedes cambiar entre todo cuando quieras.</p>
       <div class="grid g2" style="margin-top:14px">
         <div class="card startpath" data-go="proyecto">
-          <div class="sp-ic">${''}<span class="i"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4" opacity=".55"/></svg></span></div>
+          <div class="sp-ic"><span class="i"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4" opacity=".55"/></svg></span></div>
           <h3>Tengo una idea nueva</h3>
           <p style="font-size:13.3px">Descríbela en palabras simples y te doy el stack recomendado, los costos y el prompt para arrancar con Claude.</p>
           <span class="sp-go">Ir a Proyecto actual →</span>
@@ -725,12 +725,14 @@ document.getElementById('newProjBtn2').addEventListener('click',()=>{newProject(
 document.getElementById('newProjBtn').addEventListener('click',()=>{newProject();renderDashboard();go('proyecto');});
 
 function projProgress(p){const total=PHASES.reduce((a,ph)=>a+ph.tasks.length,0);const done=Object.values(p.roadmap||{}).filter(Boolean).length;return {done,total,pct:Math.round(done/total*100)};}
+// color del nivel de seguridad — único lugar donde viven los umbrales (dashboard, inicio y reporte lo comparten)
+function secColor(sa){return sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)';}
 function renderDashboard(){
   const grid=document.getElementById('projGrid');
   grid.innerHTML=Object.entries(DB.projects).map(([id,p])=>{
     const pr=projProgress(p);const cur=id===DB.activeId;const ty=detectType(p.fields);
     const sa=p.secAudit;
-    const secCol=sa?(sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)'):'var(--ink-dim)';
+    const secCol=sa?secColor(sa):'var(--ink-dim)';
     const secPill=sa?`<span class="secpill" style="color:${secCol};border-color:${secCol}" title="Última auditoría de seguridad${sa.repo?' de '+esc(sa.repo):''}">${ic('shield')} Seguridad ${sa.pct}%${sa.crit?' · '+sa.crit+' crítico'+(sa.crit>1?'s':''):''}</span>`:'';
     return `<div class="pjcard ${cur?'cur':''}">${cur?'<span class="curtag">● ACTIVO</span>':''}
       <h3>${esc(p.name)}</h3>
@@ -754,6 +756,8 @@ document.getElementById('exportBtn').addEventListener('click',()=>{
   a.download='mapa-de-apps-respaldo-'+new Date().toISOString().slice(0,10)+'.json';a.click();
   URL.revokeObjectURL(a.href);showToast('Respaldo descargado ✓');
 });
+// los respaldos pueden venir editados o de otra versión: descarta auditorías malformadas (evita "undefined%")
+function sanitizeProject(p){if(p&&p.secAudit&&(typeof p.secAudit.pct!=='number'||typeof p.secAudit.crit!=='number'))delete p.secAudit;return p;}
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;const r=new FileReader();
@@ -761,8 +765,8 @@ document.getElementById('importFile').addEventListener('change',e=>{
     const data=JSON.parse(r.result);
     if(!data.projects)throw 0;
     const mode=confirm('Aceptar = AÑADIR estos proyectos a los tuyos.\nCancelar = REEMPLAZAR todo por el respaldo.');
-    if(mode){let n=0;for(const id in data.projects){const nid=DB.projects[id]?uid():id;DB.projects[nid]=data.projects[id];n++;}showToast(n+' proyecto(s) añadidos ✓');}
-    else{DB=data;ensureProject();showToast('Respaldo restaurado ✓');}
+    if(mode){let n=0;for(const id in data.projects){const nid=DB.projects[id]?uid():id;DB.projects[nid]=sanitizeProject(data.projects[id]);n++;}showToast(n+' proyecto(s) añadidos ✓');}
+    else{DB=data;ensureProject();Object.values(DB.projects).forEach(sanitizeProject);showToast('Respaldo restaurado ✓');}
     saveDB();renderSwitch();loadForm();refreshChrome();renderDashboard();
   }catch(_){showToast('Archivo no válido');}e.target.value='';};
   r.readAsText(file);
@@ -1104,7 +1108,7 @@ function renderHome(){
   const sa=a.secAudit;
   let secHtml='';
   if(sa){
-    const col=sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)';
+    const col=secColor(sa);
     const txt=sa.crit?`Seguridad: ${sa.pct}% · ${sa.crit} punto${sa.crit>1?'s':''} crítico${sa.crit>1?'s':''} por corregir`:`Seguridad: ${sa.pct}% — sin puntos críticos`;
     secHtml=`<div class="ns-sec" style="border-color:${col}"><span class="i" style="color:${col}"><svg viewBox="0 0 24 24">${ICONS.shield}</svg></span><span style="color:${col};font-weight:600">${txt}</span><button class="btn ghost sm" data-go="seguridad" style="margin-left:auto">Ver seguridad</button></div>`;
   }
@@ -1214,7 +1218,18 @@ function linksCardHtml(ctx){
 }
 function parseRepo(url){url=(url||'').trim().replace(/\.git$/,'');let m=url.match(/github\.com[\/:]([^\/]+)\/([^\/?#]+)/i);if(m)return {owner:m[1],repo:m[2]};m=url.match(/^([^\/\s]+)\/([^\/\s]+)$/);if(m)return {owner:m[1],repo:m[2]};return null;}
 async function ghJSON(u){const r=await fetch(u,{headers:{'Accept':'application/vnd.github+json'}});if(r.status===403)throw new Error('rate');if(r.status===404)throw new Error('404');if(!r.ok)throw new Error('http');return r.json();}
-async function ghText(o,re,b,p){try{const r=await fetch(`https://raw.githubusercontent.com/${o}/${re}/${b}/${p}`);if(!r.ok)return null;return r.text();}catch(_){return null;}}
+const GH_TEXT_CACHE=new Map(); // comparte descargas entre "Analizar una app" y "Seguridad" (3 min de vigencia)
+async function ghText(o,re,b,p){
+  const k=o+'/'+re+'/'+b+'/'+p, hit=GH_TEXT_CACHE.get(k);
+  if(hit&&Date.now()-hit.at<180000)return hit.t;
+  try{
+    const r=await fetch(`https://raw.githubusercontent.com/${o}/${re}/${b}/${p}`);
+    const t=r.ok?await r.text():null;
+    if(GH_TEXT_CACHE.size>300)GH_TEXT_CACHE.clear();
+    GH_TEXT_CACHE.set(k,{t,at:Date.now()});
+    return t;
+  }catch(_){return null;}
+}
 function statusIcon(s){const m={ok:['check','st-ok'],partial:['half','st-partial'],missing:['x','st-missing'],info:['info','st-info']}[s]||['info','st-info'];return `<span class="${m[1]}">${ic(m[0])}</span>`;}
 function levelFor(p){if(p>=88)return {t:'Listo para publicar / vender',c:'var(--ok)'};if(p>=70)return {t:'Casi listo — pulir detalles',c:'#67e8c3'};if(p>=50)return {t:'MVP funcional',c:'var(--brand-2)'};if(p>=28)return {t:'MVP en construcción',c:'var(--warn)'};return {t:'Prototipo temprano',c:'var(--bad)'};}
 function auditPrompt(target){return `Quiero que audites mi app/proyecto siguiendo TODO el ciclo de vida de una aplicación. No sé programar, explícame en simple.
@@ -1279,7 +1294,7 @@ function runChecks(ctx){
   const buildScript=pkg&&pkg.scripts&&(pkg.scripts.build||pkg.scripts.start);
   const envExample=has(/\.env\.example|\.env\.sample/);
   const envCommitted=has(/(^|\/)\.env$/)||has(/\.env\.local$/);
-  const envIgnored=gitignore&&/\.env/.test(gitignore);
+  const envIgnored=!!gitignore&&/^\s*(\*\*\/)?\/?(\.env\*?|\*\.env)\s*$/m.test(gitignore); // entrada real, no ".env.example"
   const license=!!(meta.license)||has(/^license/)||has(/\/license/);
   const gitignoreHas=has(/\.gitignore$/);
   const hasExamples=has(/\/examples?\//)||has(/\/demo/)||(readme&&/```/.test(readme));
@@ -1474,12 +1489,14 @@ async function analyzeRepo(){
     box.innerHTML=`<div class="card"><div class="miss"><b>Ups.</b> ${msg}</div></div>`;
   }
 }
+// cabecera común (nombre + etiqueta + descripción) de las opciones de solución; la usan renderFix y secFix
+function fixOptHead(o){return `<div class="ot">${esc(o.name)}${o.tag?`<span class="tag2">${esc(o.tag)}</span>`:''}</div><div class="od">${esc(o.desc)}</div>`;}
 function renderFix(fix){
   if(!fix||!fix.length)return '';
   return `<div class="fixbox"><div class="fh">${ic('tool')} Cómo solucionarlo · opciones</div>${fix.map(o=>{
     const txt=(o.ex||'').replace(/\\n/g,'\n');
     const isPrompt=/^["“]/.test(txt.trim());
-    return `<div class="fixopt"><div class="ot">${esc(o.name)}${o.tag?`<span class="tag2">${esc(o.tag)}</span>`:''}</div><div class="od">${esc(o.desc)}</div>${o.ex?`<div class="ex"><span class="exl">${isPrompt?'Prompt para Claude':'Ejemplo'}${isPrompt?`<button class="iconbtn copytext" data-copytext="${escAttr(txt)}" title="Copiar prompt">${ic('copy')}</button>`:''}</span>${esc(txt)}</div>`:''}</div>`;
+    return `<div class="fixopt">${fixOptHead(o)}${o.ex?`<div class="ex"><span class="exl">${isPrompt?'Prompt para Claude':'Ejemplo'}${isPrompt?`<button class="iconbtn copytext" data-copytext="${escAttr(txt)}" title="Copiar prompt">${ic('copy')}</button>`:''}</span>${esc(txt)}</div>`:''}</div>`;
   }).join('')}</div>`;
 }
 /* Señales detectadas del repo, reutilizadas por compatibilidad y roadmaps */
@@ -1958,9 +1975,11 @@ async function auditSecurity(){
     const envLike=paths.filter(p=>/(^|\/)\.env/i.test(p));
     const scanned=[...new Set([...envLike,...codeFiles])].slice(0,45);
     const findings=[];
-    for(const f of scanned){
-      const t=await get(f); if(!t)continue;
-      SECRET_PATTERNS.forEach(p=>{ if(p.re.test(t)) findings.push({file:f,name:p.name}); });
+    // lotes en paralelo: misma cuota de API de GitHub, pero la espera baja de ~45 viajes seguidos a ~6
+    for(let i=0;i<scanned.length;i+=8){
+      const batch=scanned.slice(i,i+8);
+      const texts=await Promise.all(batch.map(f=>get(f)));
+      texts.forEach((t,k)=>{ if(!t)return; SECRET_PATTERNS.forEach(p=>{ if(p.re.test(t)) findings.push({file:batch[k],name:p.name}); }); });
     }
     const ctx={pr,meta,paths,has,gitignore,pkg,deps,findings,scannedCount:scanned.length,name:pr.owner+'/'+pr.repo};
     renderSecReport(ctx);
@@ -1976,7 +1995,8 @@ function secChecks(ctx){
   const depHas=n=>Object.keys(deps).some(d=>d.toLowerCase().includes(n));
   const usesAI=depHas('openai')||depHas('@anthropic')||depHas('anthropic')||depHas('@google/genai')||depHas('replicate')||depHas('cohere')||depHas('langchain');
   const usesBackend=depHas('express')||depHas('fastify')||depHas('next')||has(/\/api\//)||depHas('supabase')||depHas('firebase')||depHas('flask')||depHas('django')||depHas('fastapi');
-  const envIgnored=gitignore&&/(^|\n)\s*\.env/.test(gitignore);
+  // exige una entrada real para .env (.env, .env*, *.env); ".env.example" solo NO protege el .env
+  const envIgnored=!!gitignore&&/^\s*(\*\*\/)?\/?(\.env\*?|\*\.env)\s*$/m.test(gitignore);
   const envCommitted=has(/(^|\/)\.env$/)||has(/\.env\.local$/)||has(/\.env\.production$/);
 
   // 1. Secretos filtrados (lo más crítico)
@@ -2051,7 +2071,7 @@ const SEV_ORDER={critico:0,alto:1,medio:2,bajo:3};
 function sevTag(sev){const m={critico:['Crítico','st-missing'],alto:['Alto','st-missing'],medio:['Medio','st-partial'],bajo:['Bajo','st-info']}[sev];return m?`<span class="sev ${m[1]}">${m[0]}</span>`:'';}
 function secFix(fix){
   if(!fix||!fix.length)return '';
-  return `<div class="fixbox"><div class="fh">${ic('tool')} Cómo corregirlo · opciones</div>${fix.map(o=>`<div class="popt"><div class="ot">${esc(o.name)}${o.tag?`<span class="tag2">${esc(o.tag)}</span>`:''}</div><div class="od">${esc(o.desc)}</div>${o.steps?`<ol class="steps">${o.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}<div class="ex"><span class="exl">Prompt para Claude<button class="iconbtn copytext" data-copytext="${escAttr(o.prompt)}" title="Copiar prompt">${ic('copy')}</button></span>${esc(o.prompt)}</div></div>`).join('')}</div>`;
+  return `<div class="fixbox"><div class="fh">${ic('tool')} Cómo corregirlo · opciones</div>${fix.map(o=>`<div class="popt">${fixOptHead(o)}${o.steps?`<ol class="steps">${o.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}<div class="ex"><span class="exl">Prompt para Claude<button class="iconbtn copytext" data-copytext="${escAttr(o.prompt)}" title="Copiar prompt">${ic('copy')}</button></span>${esc(o.prompt)}</div></div>`).join('')}</div>`;
 }
 let LAST_SEC=null;
 function renderSecReport(ctx){
@@ -2060,7 +2080,7 @@ function renderSecReport(ctx){
   const w={ok:1,partial:.5,missing:0,info:null};
   let s=0,t=0;checks.forEach(c=>{if(w[c.status]===null)return;t++;s+=w[c.status];});
   const pct=t?Math.round(s/t*100):100;
-  const lvl=crit.length?{t:'Riesgo alto — corrige lo crítico ya',c:'var(--bad)'}:pct>=80?{t:'Buena base de seguridad',c:'var(--ok)'}:{t:'Mejorable — revisa los puntos',c:'var(--warn)'};
+  const lvl={t:crit.length?'Riesgo alto — corrige lo crítico ya':pct>=80?'Buena base de seguridad':'Mejorable — revisa los puntos',c:secColor({crit:crit.length,pct})};
   LAST_SEC={name:ctx.name,pct,crit:crit.length};
   // guarda el resultado en el proyecto activo para mostrarlo en "Mis proyectos"
   if(typeof active==='function'&&active()){active().secAudit={pct,crit:crit.length,repo:ctx.name,at:Date.now()};saveDB();}
@@ -2088,29 +2108,33 @@ function renderSecReport(ctx){
 }
 
 /* --- Roadmap de seguridad (checklist por proyecto) --- */
+// cada paso tiene un id estable: el progreso se guarda por id (no por posición), así reordenar o insertar pasos no corrompe lo marcado
 const SEC_STEPS=[
- {t:'Sacar todos los secretos del código',how:'Claves de API, contraseñas y tokens nunca van en el código. Van en variables de entorno (.env) que no se suben.',prompt:'"Revisa mi proyecto y mueve cualquier clave, contraseña o token a variables de entorno (.env), ignóralo en git y deja un .env.example. Paso a paso."'},
- {t:'Configurar .gitignore para no filtrar nada',how:'Evita subir .env, builds y archivos con datos sensibles por accidente.',prompt:'"Crea/ajusta mi .gitignore para no subir nunca secretos ni basura. Explícame cada línea."'},
- {t:'Exigir login en lo que sea privado',how:'Cada usuario debe ver solo lo suyo; valida permisos en el servidor, no solo en pantalla.',prompt:'"Asegura que las partes privadas de mi app exijan sesión y que cada usuario solo acceda a sus datos. Si uso Supabase, activa RLS. Paso a paso."'},
- {t:'Validar y sanear lo que el usuario escribe',how:'Previene inyección SQL y XSS: nunca confíes en datos que llegan de fuera.',prompt:'"Protege mi app contra inyección SQL y XSS: consultas parametrizadas y saneo de entradas. Dime qué cambiar, paso a paso."'},
- {t:'Proteger las APIs de IA contra abuso',how:'Clave solo en el servidor + límites de uso (rate limit) + tope de gasto en el proveedor.',prompt:'"Mi app usa IA. Protégela: clave solo en backend, rate limiting por usuario/IP, login para usarla y tope de gasto en el proveedor. Explícame y hazlo paso a paso."'},
- {t:'Auditar dependencias regularmente',how:'Las librerías pueden tener fallos conocidos; hay comandos que los detectan y corrigen.',prompt:'"Guíame para auditar las dependencias de mi proyecto (npm audit u otra), entender los resultados y corregir lo importante."'},
- {t:'HTTPS y cabeceras de seguridad',how:'HTTPS cifra la conexión; cabeceras como CSP/HSTS bloquean ataques comunes.',prompt:'"Confirma que mi app use HTTPS y añade cabeceras de seguridad (CSP, HSTS, X-Frame-Options) según mi hosting. Explica cada una."'},
- {t:'Copias de seguridad y plan de recuperación',how:'Si algo se rompe o te atacan, poder volver a un estado bueno lo es todo.',prompt:'"Ayúdame a configurar copias de seguridad de mi base de datos y un plan simple para recuperar mi app si algo falla."'},
- {t:'Límites de gasto y alertas en los servicios',how:'Topes de gasto en IA, hosting y base de datos evitan facturas sorpresa por abuso.',prompt:'"Explícame cómo poner límites de gasto y alertas de uso en mis servicios (IA, hosting, base de datos) para no llevarme sustos."'},
- {t:'Revisión final antes de publicar',how:'Una última pasada de seguridad antes de abrir tu app al público.',prompt:'"Voy a publicar mi app. Haz una revisión de seguridad completa final y dame una lista priorizada de lo que falta blindar."'},
+ {id:'secretos',t:'Sacar todos los secretos del código',how:'Claves de API, contraseñas y tokens nunca van en el código. Van en variables de entorno (.env) que no se suben.',prompt:'"Revisa mi proyecto y mueve cualquier clave, contraseña o token a variables de entorno (.env), ignóralo en git y deja un .env.example. Paso a paso."'},
+ {id:'gitignore',t:'Configurar .gitignore para no filtrar nada',how:'Evita subir .env, builds y archivos con datos sensibles por accidente.',prompt:'"Crea/ajusta mi .gitignore para no subir nunca secretos ni basura. Explícame cada línea."'},
+ {id:'login',t:'Exigir login en lo que sea privado',how:'Cada usuario debe ver solo lo suyo; valida permisos en el servidor, no solo en pantalla.',prompt:'"Asegura que las partes privadas de mi app exijan sesión y que cada usuario solo acceda a sus datos. Si uso Supabase, activa RLS. Paso a paso."'},
+ {id:'validar-entradas',t:'Validar y sanear lo que el usuario escribe',how:'Previene inyección SQL y XSS: nunca confíes en datos que llegan de fuera.',prompt:'"Protege mi app contra inyección SQL y XSS: consultas parametrizadas y saneo de entradas. Dime qué cambiar, paso a paso."'},
+ {id:'proteger-ia',t:'Proteger las APIs de IA contra abuso',how:'Clave solo en el servidor + límites de uso (rate limit) + tope de gasto en el proveedor.',prompt:'"Mi app usa IA. Protégela: clave solo en backend, rate limiting por usuario/IP, login para usarla y tope de gasto en el proveedor. Explícame y hazlo paso a paso."'},
+ {id:'dependencias',t:'Auditar dependencias regularmente',how:'Las librerías pueden tener fallos conocidos; hay comandos que los detectan y corrigen.',prompt:'"Guíame para auditar las dependencias de mi proyecto (npm audit u otra), entender los resultados y corregir lo importante."'},
+ {id:'https',t:'HTTPS y cabeceras de seguridad',how:'HTTPS cifra la conexión; cabeceras como CSP/HSTS bloquean ataques comunes.',prompt:'"Confirma que mi app use HTTPS y añade cabeceras de seguridad (CSP, HSTS, X-Frame-Options) según mi hosting. Explica cada una."'},
+ {id:'respaldos',t:'Copias de seguridad y plan de recuperación',how:'Si algo se rompe o te atacan, poder volver a un estado bueno lo es todo.',prompt:'"Ayúdame a configurar copias de seguridad de mi base de datos y un plan simple para recuperar mi app si algo falla."'},
+ {id:'limites-gasto',t:'Límites de gasto y alertas en los servicios',how:'Topes de gasto en IA, hosting y base de datos evitan facturas sorpresa por abuso.',prompt:'"Explícame cómo poner límites de gasto y alertas de uso en mis servicios (IA, hosting, base de datos) para no llevarme sustos."'},
+ {id:'revision-final',t:'Revisión final antes de publicar',how:'Una última pasada de seguridad antes de abrir tu app al público.',prompt:'"Voy a publicar mi app. Haz una revisión de seguridad completa final y dame una lista priorizada de lo que falta blindar."'},
 ];
 function renderSecRoadmap(){
   const sw=document.getElementById('secSwitch');
   sw.innerHTML=Object.entries(DB.projects).map(([id,p])=>`<option value="${id}" ${id===DB.activeId?'selected':''}>${esc(p.name)}</option>`).join('');
   const a=active(); a.security=a.security||{};
-  const done=SEC_STEPS.filter((_,j)=>a.security['s'+j]).length, pct=Math.round(done/SEC_STEPS.length*100);
+  // migra el progreso guardado con claves por índice (s0..s9, versiones previas) a las claves estables por id
+  let mig=false;SEC_STEPS.forEach((s,j)=>{const old='s'+j;if(old in a.security){if(!(s.id in a.security))a.security[s.id]=a.security[old];delete a.security[old];mig=true;}});
+  if(mig)saveDB();
+  const done=SEC_STEPS.filter(s=>a.security[s.id]).length, pct=Math.round(done/SEC_STEPS.length*100);
   document.getElementById('secRoadmapBody').innerHTML=`
     <div class="card"><div class="plat-h" style="margin-bottom:4px"><span class="i">${ic('shield')}</span><b>Roadmap de seguridad · ${esc(a.name)}</b><span class="plat-pct" style="color:${pct>=75?'var(--ok)':pct>=40?'var(--warn)':'var(--bad)'}">${pct}%</span></div>
       <div class="progwrap"><div class="progbar" style="width:${pct}%"></div></div>
       <p style="font-size:13px;margin:10px 0 0">Marca cada medida cuando la apliques. Empieza por las primeras (las más críticas). Tu avance se guarda en este proyecto.</p></div>
-    ${SEC_STEPS.map((s,j)=>{const on=!!a.security['s'+j];return `
-      <div class="task ${on?'checked':''}"><label class="tl"><input type="checkbox" data-sec-task="s${j}" ${on?'checked':''}><span>${j+1}. ${s.t}</span></label>
+    ${SEC_STEPS.map((s,j)=>{const on=!!a.security[s.id];return `
+      <div class="task ${on?'checked':''}"><label class="tl"><input type="checkbox" data-sec-task="${s.id}" ${on?'checked':''}><span>${j+1}. ${s.t}</span></label>
         <div class="guide">
           <div class="gline"><span class="gi">${ic('bulb')}</span><span><b>Por qué:</b> ${s.how}</span></div>
           <div class="gline"><span class="gi">${ic('message')}</span><span><b>Prompt:</b> <button class="iconbtn copytext" data-copytext="${escAttr(s.prompt)}" title="Copiar prompt" style="vertical-align:-7px">${ic('copy')}</button> <span style="font-family:var(--mono);font-size:11.5px;color:#cdd6ea">${esc(s.prompt)}</span></span></div>
