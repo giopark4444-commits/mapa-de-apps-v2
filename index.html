@@ -295,6 +295,12 @@
   .typefacts{display:flex;gap:7px;flex-wrap:wrap}
   .fact{font-size:11.5px;color:var(--ink-soft);background:var(--bg-soft);border:1px solid var(--line);border-radius:var(--r);padding:4px 9px}
   .fact b{color:var(--ink)}
+  .segrow{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 4px;align-items:center}
+  .seg{font:inherit;font-size:12px;padding:6px 13px;border-radius:var(--r);cursor:pointer;border:1px solid var(--line-strong);background:transparent;color:var(--ink-soft);transition:color var(--t),border-color var(--t)}
+  .seg:hover{color:var(--ink)}
+  .seg.on{color:var(--ink);border-color:var(--accent);box-shadow:0 0 10px var(--accent-glow)}
+  .sw{width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);background:var(--sw);cursor:pointer;padding:0;flex:none}
+  .sw.on{outline:2px solid var(--sw);outline-offset:3px;border-color:transparent}
   @media(max-width:820px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:22px 18px 80px}.mtop{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.mtop .nav-b{white-space:nowrap}.mtop .nav-b .lbl{opacity:1}.mtop .nav-b .num{display:none}}
 </style>
 </head>
@@ -316,6 +322,7 @@
       <button class="nav-b" data-go="diccionario"><span class="num">09</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 4.5h11a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M18 16.5H7a2 2 0 0 0-2 2"/></svg></span><span class="lbl">Diccionario</span></button>
       <button class="nav-b" data-go="prompts"><span class="num">10</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H9l-4 3.5z"/></svg></span><span class="lbl">Prompts para Claude</span></button>
       <button class="nav-b" data-go="errores"><span class="num">11</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 4 21 20H3z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg></span><span class="lbl">Errores comunes</span></button>
+      <button class="nav-b" data-go="ajustes"><span class="num">12</span><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></svg></span><span class="lbl">Ajustes</span></button>
     </nav>
     <div class="side-active">Proyecto activo:<b id="sideActive">—</b></div>
     <div class="side-foot">Hecho para personas con ideas, no con conocimientos de código. Todo se guarda en tu navegador.</div>
@@ -601,6 +608,42 @@
       <h1>Errores comunes (y cómo resolverlos)</h1>
       <p class="lead">Lo que casi todos hacen mal al empezar con vibecoding.</p>
       <div id="mistakeList" style="margin-top:8px"></div>
+    </section>
+    <!-- AJUSTES -->
+    <section class="page" id="ajustes">
+      <div class="eyebrow"><b>12</b> / A tu gusto</div>
+      <h1>Ajustes</h1>
+      <p class="lead">Personaliza la apariencia de la app. Todo se aplica al instante y se guarda en este dispositivo.</p>
+      <div class="card"><h3>Apariencia</h3>
+        <label>Tema</label>
+        <div class="segrow"><button class="seg" data-pref="theme" data-val="dark">Oscuro</button><button class="seg" data-pref="theme" data-val="light">Claro</button></div>
+        <label>Color de acento</label>
+        <div class="segrow">
+          <button class="sw" data-pref="accent" data-val="violeta" style="--sw:#8b5cf6" title="Violeta"></button>
+          <button class="sw" data-pref="accent" data-val="cian" style="--sw:#06b6d4" title="Cian"></button>
+          <button class="sw" data-pref="accent" data-val="verde" style="--sw:#10b981" title="Verde"></button>
+          <button class="sw" data-pref="accent" data-val="ambar" style="--sw:#f59e0b" title="Ámbar"></button>
+          <button class="sw" data-pref="accent" data-val="rosa" style="--sw:#ec4899" title="Rosa"></button>
+        </div>
+        <label>Intensidad del glow</label>
+        <div class="segrow"><button class="seg" data-pref="glow" data-val="apagado">Apagado</button><button class="seg" data-pref="glow" data-val="suave">Suave</button><button class="seg" data-pref="glow" data-val="normal">Normal</button><button class="seg" data-pref="glow" data-val="fuerte">Fuerte</button></div>
+      </div>
+      <div class="card"><h3>Riel de navegación</h3>
+        <label>Tamaño de iconos</label>
+        <div class="segrow"><button class="seg" data-pref="railIc" data-val="pequeno">Pequeño</button><button class="seg" data-pref="railIc" data-val="normal">Normal</button><button class="seg" data-pref="railIc" data-val="grande">Grande</button></div>
+        <label>Comportamiento</label>
+        <div class="segrow"><button class="seg" data-pref="railMode" data-val="hover">Expandir al pasar</button><button class="seg" data-pref="railMode" data-val="fijo">Siempre expandido</button><button class="seg" data-pref="railMode" data-val="colapsado">Siempre colapsado</button></div>
+      </div>
+      <div class="card"><h3>Texto</h3>
+        <label>Tamaño</label>
+        <div class="segrow"><button class="seg" data-pref="fontZoom" data-val="compacto">Compacto</button><button class="seg" data-pref="fontZoom" data-val="normal">Normal</button><button class="seg" data-pref="fontZoom" data-val="grande">Grande</button></div>
+        <label>Tono del gris</label>
+        <div class="segrow"><button class="seg" data-pref="inkTone" data-val="neutro">Neutro</button><button class="seg" data-pref="inkTone" data-val="calido">Cálido</button><button class="seg" data-pref="inkTone" data-val="frio">Frío</button></div>
+        <label>Contraste</label>
+        <div class="segrow"><button class="seg" data-pref="inkContrast" data-val="suave">Suave</button><button class="seg" data-pref="inkContrast" data-val="normal">Normal</button><button class="seg" data-pref="inkContrast" data-val="alto">Alto</button></div>
+      </div>
+      <div class="row"><button class="btn ghost" id="resetPrefs">Restaurar todo</button></div>
+      <p style="font-size:11.5px;color:var(--ink-dim);margin-top:10px">Estos ajustes se guardan solo en este navegador; no viajan en los respaldos.</p>
     </section>
   </main>
 </div>
