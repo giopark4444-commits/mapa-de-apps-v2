@@ -63,7 +63,7 @@
   .nav-b .lbl{opacity:0;transition:opacity var(--t)}
   .wrap.exp .nav-b .num,.wrap.exp .nav-b .lbl,.wrap:focus-within .nav-b .num,.wrap:focus-within .nav-b .lbl{opacity:1}
   .nav-b .ic{width:18px;height:18px;flex:none;display:grid;place-items:center;color:inherit}
-  .nav-b .ic svg{width:17px;height:17px;display:block}
+  .nav-b .ic svg{width:var(--rail-ic,17px);height:var(--rail-ic,17px);display:block}
   .nav-b:hover{color:var(--ink-soft);background:var(--panel-2)}
   .nav-b.on{color:var(--ink)}
   .nav-b.on .ic{color:var(--accent);filter:drop-shadow(0 0 6px var(--accent-glow))}
@@ -2253,6 +2253,53 @@ document.getElementById('secUrl').addEventListener('keydown',e=>{if(e.key==='Ent
 /* ===== arranque ===== */
 renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
 
+/* ===== preferencias de apariencia (sección Ajustes) ===== */
+const PREF_DEFAULTS={accent:'violeta',glow:'normal',railIc:'normal',railMode:'hover',fontZoom:'normal',inkTone:'neutro',inkContrast:'normal'};
+const PREF_ACCENTS={violeta:[139,92,246],cian:[6,182,212],verde:[16,185,129],ambar:[245,158,11],rosa:[236,72,153]};
+const PREF_GLOWS={apagado:0,suave:.2,normal:.35,fuerte:.55};
+const PREF_RAIL_IC={pequeno:'15px',normal:'17px',grande:'19px'};
+const PREF_ZOOMS={compacto:.92,normal:1,grande:1.1};
+const PREF_VALID={accent:Object.keys(PREF_ACCENTS),glow:Object.keys(PREF_GLOWS),railIc:Object.keys(PREF_RAIL_IC),railMode:['hover','fijo','colapsado'],fontZoom:Object.keys(PREF_ZOOMS),inkTone:['neutro','calido','frio'],inkContrast:['suave','normal','alto']};
+function loadPrefs(){
+  let raw={};try{raw=JSON.parse(localStorage.getItem('maPrefs')||'{}')||{}}catch(_){raw={}}
+  const p={...PREF_DEFAULTS};
+  for(const k in PREF_DEFAULTS){if(PREF_VALID[k].includes(raw[k]))p[k]=raw[k];}
+  return p;
+}
+/* grises del texto según tema × tono × contraste (l de --ink, --ink-soft, --ink-dim) */
+function inkSet(theme,tone,contrast){
+  const hue=tone==='calido'?35:tone==='frio'?225:0, sat=tone==='neutro'?0:6;
+  const L=theme==='dark'
+    ? {suave:[85,58,36],normal:[93,63,40],alto:[100,72,46]}[contrast]
+    : {suave:[18,38,62],normal:[10,33,66],alto:[3,25,55]}[contrast];
+  return L.map(l=>`hsl(${hue} ${sat}% ${l}%)`);
+}
+function applyPrefs(){
+  const p=loadPrefs(), r=document.documentElement, s=r.style;
+  const [cr,cg,cb]=PREF_ACCENTS[p.accent];
+  s.setProperty('--accent',`rgb(${cr} ${cg} ${cb})`);
+  s.setProperty('--accent-glow',`rgba(${cr},${cg},${cb},${PREF_GLOWS[p.glow]})`);
+  s.setProperty('--accent-soft',`rgba(${cr},${cg},${cb},.09)`);
+  s.setProperty('--rail-ic',PREF_RAIL_IC[p.railIc]);
+  const m=document.querySelector('main'); if(m)m.style.zoom=PREF_ZOOMS[p.fontZoom];
+  if(p.inkTone==='neutro'&&p.inkContrast==='normal'){
+    s.removeProperty('--ink');s.removeProperty('--ink-soft');s.removeProperty('--ink-dim');
+  }else{
+    const [i,so,di]=inkSet(r.dataset.theme,p.inkTone,p.inkContrast);
+    s.setProperty('--ink',i);s.setProperty('--ink-soft',so);s.setProperty('--ink-dim',di);
+  }
+  const w=document.querySelector('.wrap');
+  if(w){w.dataset.railmode=p.railMode;w.classList.toggle('exp',p.railMode==='fijo');}
+}
+function setPref(k,v){
+  const p=loadPrefs(); p[k]=v;
+  const out={}; for(const key in p){if(p[key]!==PREF_DEFAULTS[key])out[key]=p[key];}
+  if(Object.keys(out).length)localStorage.setItem('maPrefs',JSON.stringify(out));
+  else localStorage.removeItem('maPrefs');
+  applyPrefs();
+  if(typeof renderAjustes==='function')renderAjustes();
+}
+
 /* ===== tema claro/oscuro ===== */
 (function(){
   const saved=localStorage.getItem('maTheme');
@@ -2264,15 +2311,17 @@ renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
     h.dataset.theme=h.dataset.theme==='dark'?'light':'dark';
     localStorage.setItem('maTheme',h.dataset.theme);
     sync();
+    applyPrefs();
   };
 })();
+applyPrefs();
 
 /* ===== riel colapsable ===== */
 (function(){
   const w=document.querySelector('.wrap'),a=document.querySelector('aside');
   if(!w||!a)return;
-  a.addEventListener('mouseenter',()=>w.classList.add('exp'));
-  a.addEventListener('mouseleave',()=>w.classList.remove('exp'));
+  a.addEventListener('mouseenter',()=>{if((w.dataset.railmode||'hover')==='hover')w.classList.add('exp')});
+  a.addEventListener('mouseleave',()=>{if((w.dataset.railmode||'hover')==='hover')w.classList.remove('exp')});
 })();
 </script>
 </body>
