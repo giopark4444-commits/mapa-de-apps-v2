@@ -2355,9 +2355,41 @@ function setPref(k,v){
     localStorage.setItem('maTheme',h.dataset.theme);
     sync();
     applyPrefs();
+    if(typeof renderAjustes==='function')renderAjustes();
   };
 })();
 applyPrefs();
+
+/* ===== panel de Ajustes ===== */
+function renderAjustes(){
+  const sec=document.getElementById('ajustes'); if(!sec)return;
+  const p=loadPrefs();
+  sec.querySelectorAll('[data-pref]').forEach(b=>{
+    const k=b.dataset.pref;
+    const cur=k==='theme'?document.documentElement.dataset.theme:p[k];
+    b.classList.toggle('on',b.dataset.val===cur);
+  });
+}
+(function(){
+  const sec=document.getElementById('ajustes'); if(!sec)return;
+  sec.addEventListener('click',e=>{
+    const b=e.target.closest('[data-pref]');
+    if(b){
+      if(b.dataset.pref==='theme'){
+        if(document.documentElement.dataset.theme!==b.dataset.val)toggleTheme();
+        renderAjustes();
+      }else setPref(b.dataset.pref,b.dataset.val);
+      return;
+    }
+    if(e.target.closest('#resetPrefs')){
+      localStorage.removeItem('maPrefs');
+      const s=document.documentElement.style;
+      ['--accent','--accent-glow','--accent-soft','--rail-ic','--ink','--ink-soft','--ink-dim'].forEach(v=>s.removeProperty(v));
+      applyPrefs();renderAjustes();showToast('Ajustes restaurados ✓');
+    }
+  });
+  renderAjustes();
+})();
 
 /* ===== riel colapsable ===== */
 (function(){
