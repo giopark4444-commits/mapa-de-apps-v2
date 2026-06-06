@@ -196,7 +196,15 @@
   .progwrap{height:2px;background:var(--line);border-radius:1px;overflow:hidden;border:0;margin:10px 0 4px}
   .progbar{height:100%;width:0;background:var(--ink-soft);transition:width .4s}
   .typetag{display:inline-flex;gap:6px;align-items:center;font-size:12px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);padding:4px 12px;color:var(--brand-2);font-weight:600}
-  .mtop{display:none;margin-bottom:18px}
+  .mtop{display:none;margin-bottom:18px;align-items:center}
+  .mtop-logo{display:none;width:28px;height:28px;border-radius:var(--r);flex:none;display:grid;place-items:center;border:1px solid var(--line);color:var(--ink-soft);background:transparent;margin-right:auto}
+  .mtop-logo svg{width:14px;height:14px}
+  .hamburger{display:none;width:32px;height:32px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:var(--r);cursor:pointer;flex:none;padding:0}
+  .hamburger .i{width:18px;height:18px}
+  .menu-dropdown{display:none;position:absolute;top:60px;left:18px;right:18px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,.2);z-index:100}
+  .menu-dropdown.open{display:flex;flex-direction:column}
+  .menu-dropdown .nav-b{width:100%;border-radius:0;border-bottom:1px solid var(--line-soft);padding:11px 13px;justify-content:flex-start;margin:0}
+  .menu-dropdown .nav-b:last-child{border-bottom:0}
   /* analizador */
   .an-modes{display:flex;gap:22px;margin:6px 0 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .an-mode{cursor:pointer;border:0;background:none;color:var(--ink-dim);padding:0 2px 10px;font:inherit;font-size:12.5px;font-weight:500;position:relative}
@@ -302,7 +310,8 @@
   .seg.on{color:var(--ink);border-color:var(--accent);box-shadow:0 0 10px var(--accent-glow)}
   .sw{width:22px;height:22px;border-radius:50%;border:1px solid var(--line-strong);background:var(--sw);cursor:pointer;padding:0;flex:none}
   .sw.on{outline:2px solid var(--sw);outline-offset:3px;border-color:transparent}
-  @media(max-width:820px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:22px 18px 80px}.mtop{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.mtop .nav-b{white-space:nowrap}.mtop .nav-b .lbl{opacity:1}.mtop .nav-b .num{display:none}}
+  @media(max-width:640px){.wrap{grid-template-columns:1fr}aside{display:none}main{padding:22px 18px 80px}.mtop{display:flex;gap:8px;overflow:auto;padding-bottom:4px}.mtop .nav-b{white-space:nowrap}.mtop .nav-b .lbl{opacity:1}.mtop .nav-b .num{display:none}}
+  @media(max-width:480px){.mtop{overflow:visible;gap:8px;align-items:center}.mtop-logo{display:grid}.mtop > .nav-b{display:none}.mtop .hamburger{display:flex;align-items:center;justify-content:center}.menu-dropdown .nav-b .lbl{opacity:1}.menu-dropdown .nav-b .num{display:none}main{padding:18px 14px 60px}h1{font-size:24px}h2{font-size:17px}}
 </style>
 </head>
 <body>
@@ -666,8 +675,13 @@ function go(id){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
-document.getElementById('mtop').innerHTML=[...document.querySelectorAll('#nav .nav-b')].map(b=>`<button class="nav-b ${b.classList.contains('on')?'on':''}" data-go="${b.dataset.go}"><span class="ic">${b.querySelector('.ic').innerHTML}</span> <span class="lbl">${(b.querySelector('.lbl')||{textContent:b.textContent}).textContent.trim()}</span></button>`).join('');
-document.querySelectorAll('#mtop .nav-b').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+const hamburgerSvg='<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg>';
+const logoSvg='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.2 5-5 2.2 2.2-5z"/></svg>';
+const navButtons=[...document.querySelectorAll('#nav .nav-b')].map(b=>`<button class="nav-b ${b.classList.contains('on')?'on':''}" data-go="${b.dataset.go}"><span class="ic">${b.querySelector('.ic').innerHTML}</span> <span class="lbl">${(b.querySelector('.lbl')||{textContent:b.textContent}).textContent.trim()}</span></button>`).join('');
+document.getElementById('mtop').innerHTML=`<button class="mtop-logo" title="Mapa de Apps"><span class="i">${logoSvg}</span></button><button class="hamburger" id="hamburger" title="Menú"><span class="i">${hamburgerSvg}</span></button><div class="menu-dropdown" id="menu-dropdown">${navButtons}</div>${navButtons}`;
+document.querySelectorAll('#mtop .nav-b').forEach(b=>b.addEventListener('click',()=>{go(b.dataset.go);document.getElementById('menu-dropdown').classList.remove('open');}));
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('menu-dropdown').classList.toggle('open'));
+document.addEventListener('click',e=>{if(!e.target.closest('#hamburger')&&!e.target.closest('#menu-dropdown'))document.getElementById('menu-dropdown').classList.remove('open');});
 
 /* ===== toast + copiar ===== */
 const toast=document.getElementById('toast');
