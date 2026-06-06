@@ -691,7 +691,7 @@ document.addEventListener('click',e=>{
   if(ct){navigator.clipboard.writeText(ct.getAttribute('data-copytext')).then(()=>showToast('Prompt copiado'));return;}
   const c=e.target.closest('[data-copy]');if(!c)return;navigator.clipboard.writeText(document.querySelector(c.dataset.copy).innerText).then(()=>showToast());
 });
-function esc(s){return (s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'&#10;');}
 /* ===== sistema de iconos (línea, un color) ===== */
 const ICONS={
@@ -858,7 +858,7 @@ function renderDashboard(){
   grid.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{DB.activeId=b.dataset.open;saveDB();loadForm();refreshChrome();go('proyecto');}));
   grid.querySelectorAll('[data-rm]').forEach(b=>b.addEventListener('click',()=>{DB.activeId=b.dataset.rm;saveDB();loadForm();refreshChrome();go('roadmap');}));
   grid.querySelectorAll('[data-sec]').forEach(b=>b.addEventListener('click',()=>{DB.activeId=b.dataset.sec;saveDB();loadForm();refreshChrome();go('seguridad');}));
-  grid.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{if(projCount()<=1){showToast('Necesitas al menos un proyecto');return;}const p=DB.projects[b.dataset.del];if(!confirm('¿Eliminar "'+p.name+'"?'))return;delete DB.projects[b.dataset.del];if(DB.activeId===b.dataset.del)DB.activeId=Object.keys(DB.projects)[0];saveDB();renderDashboard();refreshChrome();showToast('Eliminado');}));
+  grid.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{if(projCount()<=1){showToast('Necesitas al menos un proyecto');return;}const p=DB.projects[b.dataset.del];if(!confirm('¿Eliminar "'+(p.name||'proyecto')+'"?'))return;delete DB.projects[b.dataset.del];if(DB.activeId===b.dataset.del)DB.activeId=Object.keys(DB.projects)[0];saveDB();renderDashboard();refreshChrome();showToast('Eliminado');}));
 }
 
 /* ===== exportar / importar ===== */
