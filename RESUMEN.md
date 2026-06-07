@@ -3,19 +3,22 @@
 Documento que recoge **qué construimos**, **por qué** y **cómo está organizado**, para
 que puedas retomarlo en cualquier momento aunque pase tiempo.
 
-**Estado:** ✅ v3.0 "Precisión" — Responsive design mejorado + correcciones de seguridad (2026-06-06)
+**Estado:** ✅ v3.0 "Precisión" — Pendientes opcionales cerrados: formulario colapsable, enlaces a docs oficiales y split en 3 archivos (`index.html` + `styles.css` + `app.js`) (2026-06-07)
 
 ---
 
 ## 1. Qué es
 
-**Mapa de Apps · Tu copiloto de vibecoding** es una aplicación de **un solo archivo
-HTML** (`index.html`) pensada para alguien con **ideas pero sin conocimientos de
-código**. Sirve de mapa y traductor entre tus ideas y el lenguaje técnico que Claude
-entiende, para planear, construir y publicar una app.
+**Mapa de Apps · Tu copiloto de vibecoding** es una aplicación web ligera de **tres
+archivos** (`index.html` estructura · `styles.css` apariencia · `app.js` lógica)
+pensada para alguien con **ideas pero sin conocimientos de código**. Sirve de mapa y
+traductor entre tus ideas y el lenguaje técnico que Claude entiende, para planear,
+construir y publicar una app.
 
-- **Cómo se usa:** se abre con doble clic en cualquier navegador. No requiere instalar
-  nada ni internet (salvo el analizador de repos, que consulta GitHub).
+- **Cómo se usa:** se abre con doble clic en `index.html` en cualquier navegador. Los
+  tres archivos deben estar en la misma carpeta y viajar juntos (si compartes, comparte
+  la carpeta entera). No requiere instalar nada ni internet (salvo el analizador de
+  repos, que consulta GitHub).
 - **Dónde se guarda todo:** en el navegador (localStorage). Cada cosa se autoguarda.
 - **Repositorio:** https://github.com/giopark4444-commits/mapa-de-apps-v2 (público)
 - **Carpeta local:** `~/Desktop/mapa-de-apps/`
@@ -124,16 +127,20 @@ Tres pestañas:
 | `panel-ajustes` | **Sección 12 · Ajustes** — panel de personalización en vivo: tema, 5 acentos, intensidad del glow, riel (iconos y comportamiento), texto (tamaño/tono/contraste); persistido en `maPrefs` con validación; "Restaurar todo". Verificado en navegador (14 checks + persistencia tras recarga, 0 errores JS). |
 | `rediseno-precision` | **Rediseño estético "Precisión"** — doble tema claro/oscuro persistente, riel de iconos colapsable con numeración técnica, violeta único con glow, anillo-instrumento con marcas de dial, tarjetas con marcas de registro, inputs de línea inferior, insignias de contorno monospace. Contenido, flujos y lógica intactos; verificado con recorrido completo en navegador en ambos temas (23 checks, 0 errores JS). Spec y plan en `docs/superpowers/`. |
 | `397847a` | **Correcciones de la revisión de código** — detección estricta de `.env` en `.gitignore` (`.env.example` ya no da falsa protección), respaldos validados al importar, progreso del roadmap de seguridad por id estable (con migración automática), colores de seguridad centralizados (`secColor`), auditoría con descargas en paralelo, caché de archivos compartida entre Analizar y Seguridad, y bug visual `${''}` del Inicio. Verificado con recorrido completo en navegador (todas las secciones, análisis y auditoría contra repo real). |
+| `pendientes-opcionales` | **Cierre de los pendientes opcionales** — (1) la sección "Diseño y contexto" del formulario (campos 11-15) ahora es un `<details>` colapsable marcado "opcional", para acortar el formulario; (2) el roadmap y "Llevar a dispositivos" enlazan a **documentación oficial** (Vercel, Supabase, Firebase, GitHub, Expo, Capacitor, Play Console, App Store Connect…) vía helpers `gtool()`/`platDocs()`; (3) **split de `index.html`** en tres archivos (`index.html` + `styles.css` + `app.js`, script clásico) — el doble clic sigue funcionando offline; verificado con round-trip byte a byte (las partes reconstruyen el original sin pérdida) y sintaxis JS/CSS OK. |
 
 ---
 
 ## 7. Pendientes opcionales (de bajo impacto)
 
-- Colapsar la sección "Diseño y contexto" del formulario (15 campos es largo).
-- Enlaces a documentación real (Vercel, Supabase) dentro de los pasos.
-- Dividir `index.html` (~2000 líneas) en varios archivos para mantenimiento más seguro.
+- ~~Colapsar la sección "Diseño y contexto" del formulario~~ ✅ hecho (campos 11-15
+  ahora en un `<details>` colapsable marcado "opcional").
+- ~~Enlaces a documentación real (Vercel, Supabase) dentro de los pasos~~ ✅ hecho
+  (roadmap y dispositivos enlazan a docs oficiales).
+- ~~Dividir `index.html` en varios archivos~~ ✅ hecho (split en `index.html` +
+  `styles.css` + `app.js`).
 
-> La app ya cumple bien su objetivo; estos pendientes son mejoras, no necesidades.
+> La app ya cumple bien su objetivo; no quedan pendientes abiertos de la lista.
 
 ---
 
@@ -157,8 +164,11 @@ Tres pestañas:
 
 ## 9. Cómo verificamos cada cambio
 
-Como la app es un solo HTML, validamos cada mejora ejecutando su JavaScript real en un
-DOM simulado con Node (sintaxis, flujos, lógica del analizador contra repos reales de
-GitHub). La parte puramente visual conviene revisarla abriendo la app en el navegador.
+Como la app es estática (HTML + CSS + JS), validamos cada mejora ejecutando su
+JavaScript real en un DOM simulado con Node (sintaxis, flujos, lógica del analizador
+contra repos reales de GitHub). Tras el split en tres archivos, el JS vive en `app.js`
+(se valida con `node -e "new Function(...)"`) y el CSS en `styles.css` (llaves
+balanceadas). La parte puramente visual conviene revisarla abriendo la app en el
+navegador.
 
 🤖 Generado con [Claude Code](https://claude.com/claude-code)

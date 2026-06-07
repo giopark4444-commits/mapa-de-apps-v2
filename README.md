@@ -2,10 +2,15 @@
 
 **v3.0 "Precisión"**
 
-App de un solo archivo (`index.html`) que ayuda a personas con ideas —pero sin
+App web ligera que ayuda a personas con ideas —pero sin
 conocimientos de código— a planear, construir, asegurar y publicar una app con la
 ayuda de Claude. Se abre con doble clic en cualquier navegador; no requiere instalar
 nada y todo se guarda en tu propio navegador.
+
+Son tres archivos que viajan juntos: `index.html` (estructura), `styles.css`
+(apariencia) y `app.js` (lógica). Mantén los tres en la misma carpeta; abres
+`index.html` y listo. Funciona offline (salvo el analizador de repos, que consulta
+GitHub).
 
 ## Qué incluye
 
@@ -32,7 +37,9 @@ marcas de registro en las tarjetas. Cada elemento usa un solo color.
 
 ## Uso
 
-Abre `index.html` en tu navegador. Listo.
+Descarga la carpeta completa (los tres archivos juntos) y abre `index.html` en tu
+navegador. Listo. Si compartes la app, comparte la carpeta entera, no solo
+`index.html`.
 
 ## Historial de versiones
 
