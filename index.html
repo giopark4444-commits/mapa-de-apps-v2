@@ -101,6 +101,12 @@
   textarea{min-height:84px} .hint{font-size:11.5px;color:var(--ink-dim);margin-top:5px}
   .form-sec{font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand-2);margin:22px 0 4px;padding-bottom:7px;border-bottom:1px solid var(--line-soft)}
   .form-sec:first-child{margin-top:2px}
+  details.form-collapse{margin:0}
+  details.form-collapse>summary.form-sec{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}
+  details.form-collapse>summary.form-sec::-webkit-details-marker{display:none}
+  details.form-collapse>summary .chev{margin-left:auto;color:var(--ink-dim);font-weight:400;transition:transform .2s}
+  details.form-collapse[open]>summary .chev{transform:rotate(90deg)}
+  .form-sec-opt{font-size:9px;font-weight:600;letter-spacing:.8px;color:var(--ink-dim);border:1px solid var(--line);border-radius:var(--r);padding:1px 6px;text-transform:none}
   .btn{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:12.5px;font-weight:600;padding:8px 16px;border-radius:var(--r);cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 18px var(--accent-glow);transition:all var(--t)}
   .btn:hover{box-shadow:0 0 26px var(--accent-glow)}
   .btn.ghost{background:transparent;border-color:var(--line-strong);color:var(--ink-soft);box-shadow:none}
@@ -446,7 +452,8 @@
         <select id="f_sensibles"><option value="no">No</option><option value="personales">Sí, datos personales (nombres, correos, direcciones)</option><option value="pagos">Sí, pagos o datos financieros</option><option value="salud">Sí, salud u otros datos muy sensibles</option></select>
         <div class="hint">Esto cambia las medidas de seguridad y privacidad necesarias.</div>
 
-        <div class="form-sec">Diseño y contexto</div>
+        <details class="form-collapse">
+        <summary class="form-sec">Diseño y contexto <span class="form-sec-opt">opcional</span> <span class="chev">›</span></summary>
         <div class="grid g2">
           <div><label>11 · Estilo visual que te gusta</label>
             <select id="f_estilo"><option value="auto">Que Claude proponga</option><option value="minimal">Minimalista y limpio</option><option value="moderno">Moderno / tech</option><option value="colorido">Colorido y divertido</option><option value="elegante">Elegante / premium</option><option value="corporativo">Serio / corporativo</option></select></div>
@@ -461,6 +468,7 @@
           <div><label>15 · ¿Para cuándo lo quieres?</label>
             <select id="f_plazo"><option value="sin-prisa">Sin prisa / aprendiendo</option><option value="semanas">En unas semanas</option><option value="pronto">Lo antes posible</option></select></div>
         </div>
+        </details>
 
         <div class="row" style="margin-top:18px"><button class="btn" id="genBtn"><span class="i"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/><path d="M5.6 5.6 18.4 18.4M18.4 5.6 5.6 18.4" opacity=".55"/></svg></span> Generar mi mapa</button><button class="btn ghost sm" id="clearBtn">Limpiar campos</button></div>
       </div>
