@@ -3,6 +3,8 @@
 Documento que recoge **qué construimos**, **por qué** y **cómo está organizado**, para
 que puedas retomarlo en cualquier momento aunque pase tiempo.
 
+**Estado:** ✅ v3.0 "Precisión" — Responsive design mejorado + correcciones de seguridad (2026-06-06)
+
 ---
 
 ## 1. Qué es
@@ -135,7 +137,25 @@ Tres pestañas:
 
 ---
 
-## 8. Cómo verificamos cada cambio
+## 8. Cambios recientes (2026-06-06)
+
+### Responsive Design Mejorado
+- **Breakpoint 640px:** Menú cambia de sidebar vertical a barra horizontal superior
+- **Breakpoint 480px:** Menú se colapsa a botón hamburger con dropdown
+- **Logo:** Visible en la barra superior en pantallas móviles
+- **Ajustes de fuentes:** Optimizadas para pantallas pequeñas sin perder legibilidad
+
+### Correcciones de Seguridad (Auditoría XSS)
+- **Función esc():** Corregida para escapar `&` al inicio (previene double-encoding)
+- **Confirm dialogs:** Nombre de proyecto con fallback seguro
+- **Validación:** Todos los innerHTML usan `esc()` o `escAttr()` apropiadamente
+- **localStorage:** Datos locales sin información sensible (ACEPTABLE)
+
+**Estado de seguridad:** ✅ SEGURO - Sin vulnerabilidades XSS encontradas
+
+---
+
+## 9. Cómo verificamos cada cambio
 
 Como la app es un solo HTML, validamos cada mejora ejecutando su JavaScript real en un
 DOM simulado con Node (sintaxis, flujos, lógica del analizador contra repos reales de
