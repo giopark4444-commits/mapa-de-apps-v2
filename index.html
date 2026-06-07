@@ -147,6 +147,9 @@
   .gline{font-size:12.7px;color:var(--ink-soft);display:flex;gap:7px} .gline .gi{flex:none}
   .gline code{font-family:var(--mono);background:var(--panel-2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11.8px;color:var(--code-ink)}
   .gtool{display:inline-block;font-size:11px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);padding:1px 7px;margin:2px 4px 0 0;color:var(--brand-2)}
+  a.gtool-doc{text-decoration:none;border-color:var(--accent);color:var(--accent);transition:all var(--t)}
+  a.gtool-doc:hover{background:var(--accent-glow);box-shadow:0 0 10px var(--accent-glow)}
+  .gt-ext{font-size:9px;opacity:.8}
   /* dict */
   .term{border:1px solid var(--line);border-radius:var(--r);padding:16px;background:var(--panel);transition:.15s} .term:hover{border-color:var(--brand);transform:translateY(-2px)}
   .term h3{color:var(--ink)} .term .tag{font-size:10.5px;color:var(--brand-2);font-weight:700;text-transform:uppercase}
@@ -262,6 +265,10 @@
   .plat .bar{height:2px;background:var(--line);border:0;border-radius:1px;overflow:hidden;margin:10px 0 9px}
   .plat .bar i{display:block;height:100%}
   .plat-note{font-size:12.8px;color:var(--ink-soft)}
+  .plat-docs{margin:8px 0 2px;font-size:11.5px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+  .plat-docs .pd-label{color:var(--ink-dim);display:inline-flex;align-items:center;gap:5px}
+  .plat-docs a{text-decoration:none;color:var(--accent);border:1px solid var(--accent);border-radius:var(--r);padding:1px 7px;transition:all var(--t)}
+  .plat-docs a:hover{background:var(--accent-glow);box-shadow:0 0 10px var(--accent-glow)}
   .plat-fix{margin-top:11px;border-top:1px solid var(--line-soft);padding-top:9px}
   .plat-fix>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--brand-2)}
   .plat-fix>summary::-webkit-details-marker{display:none}
@@ -701,6 +708,38 @@ document.addEventListener('click',e=>{
 });
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'&#10;');}
+/* ===== documentación oficial: enlaza nombres de productos conocidos ===== */
+const DOCS=[
+  [/github/i,'https://docs.github.com/es','GitHub'],
+  [/\bgit\b/i,'https://git-scm.com/doc','Git'],
+  [/supabase/i,'https://supabase.com/docs','Supabase'],
+  [/firebase/i,'https://firebase.google.com/docs','Firebase'],
+  [/vercel/i,'https://vercel.com/docs','Vercel'],
+  [/netlify/i,'https://docs.netlify.com/','Netlify'],
+  [/next\.?js/i,'https://nextjs.org/docs','Next.js'],
+  [/react native/i,'https://reactnative.dev/docs/getting-started','React Native'],
+  [/\breact\b/i,'https://react.dev/learn','React'],
+  [/expo|eas/i,'https://docs.expo.dev/','Expo'],
+  [/capacitor/i,'https://capacitorjs.com/docs','Capacitor'],
+  [/excalidraw/i,'https://docs.excalidraw.com/','Excalidraw'],
+  [/stripe/i,'https://stripe.com/docs','Stripe'],
+];
+// Renderiza una herramienta del roadmap; si es un producto conocido, la enlaza a su doc oficial.
+function gtool(t){
+  for(const [re,url] of DOCS){ if(re.test(t)) return `<a class="gtool gtool-doc" href="${url}" target="_blank" rel="noopener">${esc(t)} <span class="gt-ext">↗</span></a>`; }
+  return `<span class="gtool">${esc(t)}</span>`;
+}
+// Documentación oficial relevante por plataforma (sección "Llevar a dispositivos").
+const PLAT_DOCS={
+  web:[['Vercel · publicar','https://vercel.com/docs'],['Netlify','https://docs.netlify.com/'],['PWA · MDN','https://developer.mozilla.org/es/docs/Web/Progressive_web_apps']],
+  android:[['Google Play Console','https://support.google.com/googleplay/android-developer'],['Capacitor · Android','https://capacitorjs.com/docs/android'],['PWA → Play (TWA)','https://developer.chrome.com/docs/android/trusted-web-activity']],
+  ios:[['Apple Developer','https://developer.apple.com/documentation/'],['App Store Connect','https://developer.apple.com/help/app-store-connect/'],['Capacitor · iOS','https://capacitorjs.com/docs/ios']],
+  tablet:[['Diseño responsive · MDN','https://developer.mozilla.org/es/docs/Learn/CSS/CSS_layout/Responsive_Design'],['PWA · MDN','https://developer.mozilla.org/es/docs/Web/Progressive_web_apps']],
+};
+function platDocs(key){
+  const d=PLAT_DOCS[key]; if(!d) return '';
+  return `<div class="plat-docs"><span class="pd-label">${ic('book')} Documentación oficial:</span> ${d.map(([n,u])=>`<a href="${u}" target="_blank" rel="noopener">${esc(n)} <span class="gt-ext">↗</span></a>`).join('')}</div>`;
+}
 /* ===== sistema de iconos (línea, un color) ===== */
 const ICONS={
  target:'<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4"/>',
@@ -1170,7 +1209,7 @@ function renderPhases(){
       return `<div class="task ${on?'checked':''}"><label class="tl"><input type="checkbox" data-task="${id}" ${on?'checked':''}><span>${tk.t}</span></label>
         <div class="guide">
           <div class="gline"><span class="gi">${ic('bulb')}</span><span><b>Cómo:</b> ${tk.how}</span></div>
-          <div class="gline"><span class="gi">${ic('tool')}</span><span><b>Herramientas:</b> ${tk.tools.map(t=>`<span class="gtool">${t}</span>`).join('')}</span></div>
+          <div class="gline"><span class="gi">${ic('tool')}</span><span><b>Herramientas:</b> ${tk.tools.map(gtool).join('')}</span></div>
           <div class="gline"><span class="gi">${ic('spark')}</span><span><b>Ejemplo:</b> ${tk.ex}</span></div>
         </div></div>`;
     }).join('');
@@ -1885,6 +1924,7 @@ function renderDevicesUnified(ctx){
       <div class="plat-inner">
         <div class="bar"><i style="width:${p.score}%;background:${bc(p.score)}"></i></div>
         <div class="plat-note">${esc(p.note)}</div>
+        ${platDocs(p.key)}
         ${checklist}
         <details class="plat-fix" style="margin-top:12px"><summary>${ic('tool')} Cómo mejorarlo · ${p.opts.length} opcion${p.opts.length>1?'es':''} <span class="chev">›</span></summary>
           <div class="plat-body"><div class="plat-miss">${ic('arrowRight')} ${esc(p.missing)}</div>${p.opts.map(optHtml).join('')}</div>
