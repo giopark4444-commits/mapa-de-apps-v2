@@ -144,9 +144,17 @@ Tres pestañas:
 
 ---
 
-## 8. Cambios recientes (2026-06-06)
+## 8. Cambios recientes
 
-### Responsive Design Mejorado
+### Adaptación a dispositivos ampliada (2026-06-07)
+- **Áreas seguras iOS (notch / barra de inicio):** `viewport-fit=cover` + `env(safe-area-inset-*)` con `max()` en `main`, riel, toast y reglas móviles. En iPhones con notch el contenido ya no queda tapado; en dispositivos sin notch el padding base se conserva (env resuelve a 0).
+- **Tablets táctiles:** el riel se expandía solo con *hover*, que no existe en pantallas táctiles → en `@media(hover:none) and (min-width:481px)` el riel se reemplaza por la barra superior con etiquetas (navegación usable sin hover). Los equipos con mouse conservan el riel intacto.
+- **Móviles muy pequeños (≤360px):** breakpoint nuevo que reduce h1/paddings; verificado sin desborde horizontal a 320px.
+- **Pantallas grandes (≥1300px):** `main` centrado (`margin-inline:auto`) en vez de pegado a la izquierda.
+- **Objetivos táctiles:** en `@media(pointer:coarse)` los botones, iconos y entradas del riel tienen altura mínima cómoda (38–42px).
+- Verificado con capturas reales en Chromium headless (320 / 768 táctil / 1920) y emulación de `hover`/`pointer` vía CDP; CSS con llaves balanceadas.
+
+### Responsive Design base (2026-06-06)
 - **Breakpoint 640px:** Menú cambia de sidebar vertical a barra horizontal superior
 - **Breakpoint 480px:** Menú se colapsa a botón hamburger con dropdown
 - **Logo:** Visible en la barra superior en pantallas móviles
