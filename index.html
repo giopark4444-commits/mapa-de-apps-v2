@@ -209,10 +209,11 @@
         <button class="an-mode" data-mode="otro">Web en vivo / carpeta local</button>
       </div>
       <div id="anGithub">
+        <div class="card" id="ghConnect"></div>
         <div class="card">
-          <label>Enlace del repositorio (público)</label>
+          <label>Enlace del repositorio</label>
           <input id="anUrl" placeholder="https://github.com/usuario/mi-proyecto">
-          <div class="hint">Funciona con repos públicos. Ej: <code>https://github.com/facebook/react</code> o solo <code>usuario/repo</code>.</div>
+          <div class="hint">Pega un enlace de GitHub (o <code>usuario/repo</code>), o conéctate arriba para elegir de tu lista. Repos públicos sin conectar; públicos y privados al conectar.</div>
           <div class="row" style="margin-top:14px"><button class="btn" id="anBtn"><span class="i"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16.5 16.5"/></svg></span> Analizar repositorio</button><button class="btn ghost" id="anSaveBtn"><span class="i"><svg viewBox="0 0 24 24"><path d="M6 4.5h9L18.5 8v11.5H6z"/><path d="M9 4.5V9h6"/><rect x="9" y="13" width="6" height="6.5"/></svg></span> Guardar enlace</button></div>
           <div id="anSaved" style="margin-top:14px"></div>
         </div>

@@ -703,18 +703,30 @@ function linksCardHtml(ctx){
   }).join('');
 }
 function parseRepo(url){url=(url||'').trim().replace(/\.git$/,'');let m=url.match(/github\.com[\/:]([^\/]+)\/([^\/?#]+)/i);if(m)return {owner:m[1],repo:m[2]};m=url.match(/^([^\/\s]+)\/([^\/\s]+)$/);if(m)return {owner:m[1],repo:m[2]};return null;}
-async function ghJSON(u){const r=await fetch(u,{headers:{'Accept':'application/vnd.github+json'}});if(r.status===403)throw new Error('rate');if(r.status===404)throw new Error('404');if(!r.ok)throw new Error('http');return r.json();}
+/* ===== conexión opcional con GitHub (token personal, guardado solo en este navegador) ===== */
+const GH_TOKEN_KEY='mapa_gh_token_v1', GH_USER_KEY='mapa_gh_user_v1';
+function ghToken(){try{return localStorage.getItem(GH_TOKEN_KEY)||'';}catch(_){return '';}}
+function setGhToken(t){try{t?localStorage.setItem(GH_TOKEN_KEY,t):localStorage.removeItem(GH_TOKEN_KEY);}catch(_){}}
+function ghHeaders(){const h={'Accept':'application/vnd.github+json'};const t=ghToken();if(t)h['Authorization']='Bearer '+t;return h;}
+function b64utf8(s){try{return decodeURIComponent(escape(atob((s||'').replace(/\s/g,''))));}catch(_){return null;}}
+async function ghJSON(u){const r=await fetch(u,{headers:ghHeaders()});if(r.status===401)throw new Error('auth');if(r.status===403)throw new Error('rate');if(r.status===404)throw new Error('404');if(!r.ok)throw new Error('http');return r.json();}
 const GH_TEXT_CACHE=new Map(); // comparte descargas entre "Analizar una app" y "Seguridad" (3 min de vigencia)
 async function ghText(o,re,b,p){
   const k=o+'/'+re+'/'+b+'/'+p, hit=GH_TEXT_CACHE.get(k);
   if(hit&&Date.now()-hit.at<180000)return hit.t;
+  let t=null;
   try{
     const r=await fetch(`https://raw.githubusercontent.com/${o}/${re}/${b}/${p}`);
-    const t=r.ok?await r.text():null;
-    if(GH_TEXT_CACHE.size>300)GH_TEXT_CACHE.clear();
-    GH_TEXT_CACHE.set(k,{t,at:Date.now()});
-    return t;
-  }catch(_){return null;}
+    if(r.ok)t=await r.text();
+    else if(ghToken()){
+      // repo privado: raw no sirve sin sesión, leemos por la API de contenidos con el token
+      const ar=await fetch(`https://api.github.com/repos/${o}/${re}/contents/${encodeURIComponent(p)}?ref=${encodeURIComponent(b)}`,{headers:ghHeaders()});
+      if(ar.ok){const j=await ar.json();if(j&&j.content)t=b64utf8(j.content);}
+    }
+  }catch(_){t=null;}
+  if(GH_TEXT_CACHE.size>300)GH_TEXT_CACHE.clear();
+  GH_TEXT_CACHE.set(k,{t,at:Date.now()});
+  return t;
 }
 function statusIcon(s){const m={ok:['check','st-ok'],partial:['half','st-partial'],missing:['x','st-missing'],info:['info','st-info']}[s]||['info','st-info'];return `<span class="${m[1]}">${ic(m[0])}</span>`;}
 function levelFor(p){if(p>=88)return {t:'Listo para publicar / vender',c:'var(--ok)'};if(p>=70)return {t:'Casi listo — pulir detalles',c:'var(--ok)'};if(p>=50)return {t:'MVP funcional',c:'var(--brand-2)'};if(p>=28)return {t:'MVP en construcción',c:'var(--warn)'};return {t:'Prototipo temprano',c:'var(--bad)'};}
@@ -989,7 +1001,10 @@ async function analyzeRepo(){
     };
     renderReport(ctx,runChecks(ctx));
   }catch(e){
-    const msg=e.message==='404'?'No encontré ese repositorio (¿es público y el enlace es correcto?).':e.message==='rate'?'GitHub me limitó por muchas consultas. Espera unos minutos e intenta de nuevo.':'No pude analizarlo. Revisa el enlace e intenta otra vez.';
+    const msg=e.message==='auth'?'Tu token de GitHub no es válido o expiró. Vuelve a conectar tu GitHub arriba.'
+      :e.message==='404'?('No encontré ese repositorio (¿es público y el enlace es correcto?).'+(ghToken()?'':' Si es privado, conecta tu GitHub arriba.'))
+      :e.message==='rate'?('GitHub me limitó por muchas consultas.'+(ghToken()?' Espera unos minutos e intenta de nuevo.':' Conecta tu GitHub arriba para subir el límite a 5.000 consultas/hora.'))
+      :'No pude analizarlo. Revisa el enlace e intenta otra vez.';
     box.innerHTML=`<div class="card"><div class="miss"><b>Ups.</b> ${msg}</div></div>`;
   }
 }
@@ -1355,6 +1370,80 @@ function applyAnalysisToRoadmap(){
 }
 document.getElementById('anBtn').addEventListener('click',analyzeRepo);
 document.getElementById('anUrl').addEventListener('keydown',e=>{if(e.key==='Enter')analyzeRepo();});
+
+/* ===== conectar GitHub: elegir repos de una lista (sin pegar enlaces) ===== */
+let GH_REPOS=[];
+async function ghMyRepos(){
+  const r=await fetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member',{headers:ghHeaders()});
+  if(r.status===401)throw new Error('auth');
+  if(!r.ok)throw new Error('http');
+  return r.json();
+}
+function renderGhConnect(){
+  const box=document.getElementById('ghConnect'); if(!box)return;
+  if(!ghToken()){
+    box.innerHTML=`<h3>${ic('git')} Conecta tu GitHub <span class="tag2">opcional</span></h3>
+      <p style="font-size:13px;margin:4px 0 0">Conéctate para elegir tus repos de una lista (incluye privados) sin pegar enlaces, y subir el límite de consultas a GitHub. Tu token se guarda <b>solo en este navegador</b>; nada pasa por ningún servidor.</p>
+      <ol style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 12px;padding-left:18px">
+        <li>Abre <a href="https://github.com/settings/tokens/new?description=Mapa+de+Apps&scopes=repo" target="_blank" rel="noopener">github.com/settings/tokens ↗</a> (te llevo con el permiso justo de solo lectura).</li>
+        <li>Elige una expiración, pulsa <b>Generate token</b> y cópialo.</li>
+        <li>Pégalo aquí y pulsa Conectar.</li>
+      </ol>
+      <input id="ghTokenInput" type="password" autocomplete="off" placeholder="ghp_… o github_pat_…">
+      <div class="row" style="margin-top:12px"><button class="btn" id="ghConnectBtn"><span class="i">${ic('check')}</span> Conectar</button></div>
+      <p class="hint" style="margin-top:8px">Solo lectura. Puedes revocarlo cuando quieras desde GitHub o con "Desconectar".</p>`;
+    box.querySelector('#ghConnectBtn').addEventListener('click',ghConnect);
+    box.querySelector('#ghTokenInput').addEventListener('keydown',e=>{if(e.key==='Enter')ghConnect();});
+  }else{
+    const user=(()=>{try{return localStorage.getItem(GH_USER_KEY)||'tu cuenta';}catch(_){return 'tu cuenta';}})();
+    box.innerHTML=`<h3>${ic('git')} GitHub conectado <span class="tag2" style="background:var(--accent-soft);color:var(--accent)">${esc(user)} ✓</span></h3>
+      <div class="row" style="margin:10px 0 4px;gap:8px"><input id="ghRepoSearch" placeholder="Busca entre tus repos…" style="flex:1;min-width:160px"><button class="btn ghost sm" id="ghRefreshBtn" title="Actualizar lista"><span class="i">${ic('refresh')}</span></button><button class="btn ghost sm" id="ghDisconnectBtn">Desconectar</button></div>
+      <div id="ghRepoList" class="gh-repolist"></div>`;
+    box.querySelector('#ghDisconnectBtn').addEventListener('click',ghDisconnect);
+    box.querySelector('#ghRefreshBtn').addEventListener('click',()=>loadMyRepos(true));
+    box.querySelector('#ghRepoSearch').addEventListener('input',e=>renderRepoList(e.target.value));
+    if(GH_REPOS.length)renderRepoList(''); else loadMyRepos(false);
+  }
+}
+function renderRepoList(q){
+  const el=document.getElementById('ghRepoList'); if(!el)return;
+  if(!GH_REPOS.length){el.innerHTML='<p class="hint" style="margin:6px 0">Cargando tus repos…</p>';return;}
+  q=(q||'').toLowerCase().trim();
+  const filtered=GH_REPOS.filter(r=>!q||r.full_name.toLowerCase().includes(q)||(r.description||'').toLowerCase().includes(q)).slice(0,60);
+  if(!filtered.length){el.innerHTML='<p class="hint" style="margin:6px 0">Ningún repo coincide con la búsqueda.</p>';return;}
+  el.innerHTML=filtered.map(r=>`<button class="gh-repo" data-full="${escAttr(r.full_name)}"><span class="gr-name">${esc(r.full_name)}${r.private?' <span class="gr-priv">privado</span>':''}</span>${r.description?`<span class="gr-desc">${esc(r.description)}</span>`:''}</button>`).join('');
+  el.querySelectorAll('[data-full]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('anUrl').value=b.dataset.full;analyzeRepo();}));
+}
+async function loadMyRepos(force){
+  const el=document.getElementById('ghRepoList');
+  if(el&&(!GH_REPOS.length||force))el.innerHTML='<p class="hint" style="margin:6px 0">Cargando tus repos…</p>';
+  try{
+    const repos=await ghMyRepos();
+    GH_REPOS=repos.map(r=>({full_name:r.full_name,private:r.private,description:r.description||''})).sort((a,b)=>a.full_name.localeCompare(b.full_name));
+    const s=document.getElementById('ghRepoSearch');
+    renderRepoList(s?s.value:'');
+  }catch(e){
+    if(e.message==='auth'){showToast('Token inválido o expirado');ghDisconnect();}
+    else if(el)el.innerHTML='<p class="hint" style="margin:6px 0">No pude cargar tus repos. Revisa tu conexión y pulsa actualizar.</p>';
+  }
+}
+async function ghConnect(){
+  const inp=document.getElementById('ghTokenInput'); const t=inp?(inp.value||'').trim():'';
+  if(!t){showToast('Pega tu token de GitHub');return;}
+  setGhToken(t);
+  try{
+    const me=await ghJSON('https://api.github.com/user');
+    try{localStorage.setItem(GH_USER_KEY,me.login||'GitHub');}catch(_){}
+    GH_REPOS=[]; showToast('GitHub conectado ✓'); renderGhConnect();
+  }catch(e){
+    setGhToken(''); showToast(e.message==='auth'?'Token inválido o sin permisos':'No pude conectar, revisa el token');
+  }
+}
+function ghDisconnect(){
+  setGhToken(''); try{localStorage.removeItem(GH_USER_KEY);}catch(_){} GH_REPOS=[];
+  renderGhConnect(); showToast('GitHub desconectado');
+}
+renderGhConnect();
 
 /* ===== repos guardados ===== */
 const REPOS_KEY='mapa_repos_v1';
