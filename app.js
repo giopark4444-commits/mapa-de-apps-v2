@@ -1419,15 +1419,21 @@ document.getElementById('anBtn').addEventListener('click',analyzeRepo);
 document.getElementById('anUrl').addEventListener('keydown',e=>{if(e.key==='Enter')analyzeRepo();});
 
 /* ===== conectar GitHub: elegir repos de una lista (sin pegar enlaces) ===== */
+/* Se monta en "Analizar una app" y en "Seguridad"; cada montaje enruta la selección a su propio campo y acción. */
 let GH_REPOS=[];
+const GH_MOUNTS=[
+  {box:'ghConnect', url:'anUrl', run:()=>analyzeRepo()},
+  {box:'ghConnectSec', url:'secUrl', run:()=>auditSecurity()},
+];
+function ghMountFor(box){return GH_MOUNTS.find(m=>m.box===box.id);}
 async function ghMyRepos(){
   const r=await fetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member',{headers:ghHeaders()});
   if(r.status===401)throw new Error('auth');
   if(!r.ok)throw new Error('http');
   return r.json();
 }
-function renderGhConnect(){
-  const box=document.getElementById('ghConnect'); if(!box)return;
+function renderGhConnects(){GH_MOUNTS.forEach(m=>{const b=document.getElementById(m.box);if(b)renderGhConnect(b);});}
+function renderGhConnect(box){
   if(!ghToken()){
     box.innerHTML=`<h3>${ic('git')} Conecta tu GitHub <span class="tag2">opcional</span></h3>
       <p style="font-size:13px;margin:4px 0 0">Conéctate para elegir tus repos de una lista (incluye privados) sin pegar enlaces, y subir el límite de consultas a GitHub. Tu token se guarda <b>solo en este navegador</b>; nada pasa por ningún servidor.</p>
@@ -1436,61 +1442,60 @@ function renderGhConnect(){
         <li>Elige una expiración, pulsa <b>Generate token</b> y cópialo.</li>
         <li>Pégalo aquí y pulsa Conectar.</li>
       </ol>
-      <input id="ghTokenInput" type="password" autocomplete="off" placeholder="ghp_… o github_pat_…">
-      <div class="row" style="margin-top:12px"><button class="btn" id="ghConnectBtn"><span class="i">${ic('check')}</span> Conectar</button></div>
+      <input class="gh-token-input" type="password" autocomplete="off" placeholder="ghp_… o github_pat_…">
+      <div class="row" style="margin-top:12px"><button class="btn gh-connect-btn"><span class="i">${ic('check')}</span> Conectar</button></div>
       <p class="hint" style="margin-top:8px">Solo lectura. Puedes revocarlo cuando quieras desde GitHub o con "Desconectar".</p>`;
-    box.querySelector('#ghConnectBtn').addEventListener('click',ghConnect);
-    box.querySelector('#ghTokenInput').addEventListener('keydown',e=>{if(e.key==='Enter')ghConnect();});
+    box.querySelector('.gh-connect-btn').addEventListener('click',()=>ghConnect(box));
+    box.querySelector('.gh-token-input').addEventListener('keydown',e=>{if(e.key==='Enter')ghConnect(box);});
   }else{
     const user=(()=>{try{return localStorage.getItem(GH_USER_KEY)||'tu cuenta';}catch(_){return 'tu cuenta';}})();
     box.innerHTML=`<h3>${ic('git')} GitHub conectado <span class="tag2" style="background:var(--accent-soft);color:var(--accent)">${esc(user)} ✓</span></h3>
-      <div class="row" style="margin:10px 0 4px;gap:8px"><input id="ghRepoSearch" placeholder="Busca entre tus repos…" style="flex:1;min-width:160px"><button class="btn ghost sm" id="ghRefreshBtn" title="Actualizar lista"><span class="i">${ic('refresh')}</span></button><button class="btn ghost sm" id="ghDisconnectBtn">Desconectar</button></div>
-      <div id="ghRepoList" class="gh-repolist"></div>`;
-    box.querySelector('#ghDisconnectBtn').addEventListener('click',ghDisconnect);
-    box.querySelector('#ghRefreshBtn').addEventListener('click',()=>loadMyRepos(true));
-    box.querySelector('#ghRepoSearch').addEventListener('input',e=>renderRepoList(e.target.value));
-    if(GH_REPOS.length)renderRepoList(''); else loadMyRepos(false);
+      <div class="row" style="margin:10px 0 4px;gap:8px"><input class="gh-repo-search" placeholder="Busca entre tus repos…" style="flex:1;min-width:160px"><button class="btn ghost sm gh-refresh-btn" title="Actualizar lista"><span class="i">${ic('refresh')}</span></button><button class="btn ghost sm gh-disc-btn">Desconectar</button></div>
+      <div class="gh-repolist gh-repo-list"></div>`;
+    box.querySelector('.gh-disc-btn').addEventListener('click',ghDisconnect);
+    box.querySelector('.gh-refresh-btn').addEventListener('click',()=>loadMyRepos(true));
+    box.querySelector('.gh-repo-search').addEventListener('input',e=>renderRepoList(box,e.target.value));
+    if(GH_REPOS.length)renderRepoList(box,''); else loadMyRepos(false);
   }
 }
-function renderRepoList(q){
-  const el=document.getElementById('ghRepoList'); if(!el)return;
+function renderRepoList(box,q){
+  const m=ghMountFor(box), el=box.querySelector('.gh-repo-list'); if(!el)return;
   if(!GH_REPOS.length){el.innerHTML='<p class="hint" style="margin:6px 0">Cargando tus repos…</p>';return;}
   q=(q||'').toLowerCase().trim();
   const filtered=GH_REPOS.filter(r=>!q||r.full_name.toLowerCase().includes(q)||(r.description||'').toLowerCase().includes(q)).slice(0,60);
   if(!filtered.length){el.innerHTML='<p class="hint" style="margin:6px 0">Ningún repo coincide con la búsqueda.</p>';return;}
   el.innerHTML=filtered.map(r=>`<button class="gh-repo" data-full="${escAttr(r.full_name)}"><span class="gr-name">${esc(r.full_name)}${r.private?' <span class="gr-priv">privado</span>':''}</span>${r.description?`<span class="gr-desc">${esc(r.description)}</span>`:''}</button>`).join('');
-  el.querySelectorAll('[data-full]').forEach(b=>b.addEventListener('click',()=>{document.getElementById('anUrl').value=b.dataset.full;analyzeRepo();}));
+  el.querySelectorAll('[data-full]').forEach(b=>b.addEventListener('click',()=>{document.getElementById(m.url).value=b.dataset.full;m.run();}));
 }
+function refreshAllRepoLists(){GH_MOUNTS.forEach(m=>{const box=document.getElementById(m.box);if(box&&ghToken()){const s=box.querySelector('.gh-repo-search');renderRepoList(box,s?s.value:'');}});}
 async function loadMyRepos(force){
-  const el=document.getElementById('ghRepoList');
-  if(el&&(!GH_REPOS.length||force))el.innerHTML='<p class="hint" style="margin:6px 0">Cargando tus repos…</p>';
+  GH_MOUNTS.forEach(m=>{const box=document.getElementById(m.box);if(box&&ghToken()){const el=box.querySelector('.gh-repo-list');if(el&&(!GH_REPOS.length||force))el.innerHTML='<p class="hint" style="margin:6px 0">Cargando tus repos…</p>';}});
   try{
     const repos=await ghMyRepos();
     GH_REPOS=repos.map(r=>({full_name:r.full_name,private:r.private,description:r.description||''})).sort((a,b)=>a.full_name.localeCompare(b.full_name));
-    const s=document.getElementById('ghRepoSearch');
-    renderRepoList(s?s.value:'');
+    refreshAllRepoLists();
   }catch(e){
-    if(e.message==='auth'){showToast('Token inválido o expirado');ghDisconnect();}
-    else if(el)el.innerHTML='<p class="hint" style="margin:6px 0">No pude cargar tus repos. Revisa tu conexión y pulsa actualizar.</p>';
+    if(e.message==='auth'){showToast('Token inválido o expirado');ghDisconnect();return;}
+    GH_MOUNTS.forEach(m=>{const box=document.getElementById(m.box);if(box&&ghToken()){const el=box.querySelector('.gh-repo-list');if(el)el.innerHTML='<p class="hint" style="margin:6px 0">No pude cargar tus repos. Revisa tu conexión y pulsa actualizar.</p>';}});
   }
 }
-async function ghConnect(){
-  const inp=document.getElementById('ghTokenInput'); const t=inp?(inp.value||'').trim():'';
+async function ghConnect(box){
+  const inp=box.querySelector('.gh-token-input'); const t=inp?(inp.value||'').trim():'';
   if(!t){showToast('Pega tu token de GitHub');return;}
   setGhToken(t);
   try{
     const me=await ghJSON('https://api.github.com/user');
     try{localStorage.setItem(GH_USER_KEY,me.login||'GitHub');}catch(_){}
-    GH_REPOS=[]; showToast('GitHub conectado ✓'); renderGhConnect();
+    GH_REPOS=[]; showToast('GitHub conectado ✓'); renderGhConnects();
   }catch(e){
     setGhToken(''); showToast(e.message==='auth'?'Token inválido o sin permisos':'No pude conectar, revisa el token');
   }
 }
 function ghDisconnect(){
   setGhToken(''); try{localStorage.removeItem(GH_USER_KEY);}catch(_){} GH_REPOS=[];
-  renderGhConnect(); showToast('GitHub desconectado');
+  renderGhConnects(); showToast('GitHub desconectado');
 }
-renderGhConnect();
+renderGhConnects();
 
 /* ===== repos guardados ===== */
 const REPOS_KEY='mapa_repos_v1';

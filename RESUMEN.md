@@ -3,7 +3,7 @@
 Documento que recoge **qué construimos**, **por qué** y **cómo está organizado**, para
 que puedas retomarlo en cualquier momento aunque pase tiempo.
 
-**Estado:** ✅ v3.0 "Precisión" — Pendientes opcionales cerrados: formulario colapsable, enlaces a docs oficiales y split en 3 archivos (`index.html` + `styles.css` + `app.js`) (2026-06-07)
+**Estado:** ✅ v3.1 "Producción" — App estática lista para producción: PWA instalable+offline, cabeceras de seguridad (CSP/HSTS) y `.gitignore`, roadmap ampliado (escalabilidad/caché/monitoreo) detectado por el analizador, **conexión con GitHub** para elegir repos (incl. privados) en Analizar y Seguridad, botón de apoyo/venta configurable y monitoreo propio (analítica de Vercel + registro local de errores). Desplegada en Vercel sin backend ni Supabase. (2026-06-08)
 
 ---
 
@@ -74,6 +74,11 @@ Pega un repositorio público de GitHub y:
 - **Enlaces del proyecto** — pega tu URL de Vercel/Supabase/tienda; confirma esos pasos
   y los deja a un clic, con comprobación de vida best-effort. Se guarda por repo.
 - **Repos guardados** — guarda enlaces para reanalizar con un clic.
+- **Conectar GitHub (opcional)** — pega un token personal (solo lectura, guardado solo
+  en localStorage) y elige el repo de una **lista buscable**, incluidos **privados**, sin
+  pegar enlaces. Sube el límite de la API de GitHub de 60 a 5.000/hora. El mismo conector
+  vive también en Seguridad (token compartido). Sin backend: el navegador habla directo
+  con la API de GitHub.
 
 ---
 
@@ -128,6 +133,7 @@ Tres pestañas:
 | `panel-ajustes` | **Sección 12 · Ajustes** — panel de personalización en vivo: tema, 5 acentos, intensidad del glow, riel (iconos y comportamiento), texto (tamaño/tono/contraste); persistido en `maPrefs` con validación; "Restaurar todo". Verificado en navegador (14 checks + persistencia tras recarga, 0 errores JS). |
 | `rediseno-precision` | **Rediseño estético "Precisión"** — doble tema claro/oscuro persistente, riel de iconos colapsable con numeración técnica, violeta único con glow, anillo-instrumento con marcas de dial, tarjetas con marcas de registro, inputs de línea inferior, insignias de contorno monospace. Contenido, flujos y lógica intactos; verificado con recorrido completo en navegador en ambos temas (23 checks, 0 errores JS). Spec y plan en `docs/superpowers/`. |
 | `397847a` | **Correcciones de la revisión de código** — detección estricta de `.env` en `.gitignore` (`.env.example` ya no da falsa protección), respaldos validados al importar, progreso del roadmap de seguridad por id estable (con migración automática), colores de seguridad centralizados (`secColor`), auditoría con descargas en paralelo, caché de archivos compartida entre Analizar y Seguridad, y bug visual `${''}` del Inicio. Verificado con recorrido completo en navegador (todas las secciones, análisis y auditoría contra repo real). |
+| `v3.1-produccion` | **Preparación para producción** — roadmap ampliado (escalabilidad/caché/monitoreo) + detección en el analizador, `.gitignore` y `vercel.json` con CSP/HSTS (y quita del `onclick` inline), **conectar GitHub** para elegir repos (incl. privados) en Analizar y Seguridad, botón de apoyo/venta configurable y monitoreo propio (analítica de Vercel + registro local de errores). Todo estático, desplegado en Vercel sin backend. Verificado con jsdom (varias suites, 0 fallos) y fetch en vivo. Detalle en §8. |
 | `pendientes-opcionales` | **Cierre de los pendientes opcionales** — (1) la sección "Diseño y contexto" del formulario (campos 11-15) ahora es un `<details>` colapsable marcado "opcional", para acortar el formulario; (2) el roadmap y "Llevar a dispositivos" enlazan a **documentación oficial** (Vercel, Supabase, Firebase, GitHub, Expo, Capacitor, Play Console, App Store Connect…) vía helpers `gtool()`/`platDocs()`; (3) **split de `index.html`** en tres archivos (`index.html` + `styles.css` + `app.js`, script clásico) — el doble clic sigue funcionando offline; verificado con round-trip byte a byte (las partes reconstruyen el original sin pérdida), y **ejecución real en un DOM con jsdom** cargando los 3 archivos como el navegador (10 checks: 12 secciones, navegación, tema persistente, `gtool()`/`platDocs()`, formulario colapsable; 0 errores JS). |
 
 ---
@@ -146,6 +152,37 @@ Tres pestañas:
 ---
 
 ## 8. Cambios recientes
+
+### v3.1 "Producción": preparación para producción (2026-06-08)
+- **Roadmap ampliado, sin duplicar:** se sumaron los puntos de preparación para producción
+  que faltaban, en su fase del ciclo de vida y con prompt copiable — **escalabilidad**
+  (Diseño), **caché/compresión** (Publicar) y **monitoreo** (Mantener) — tras mapearlos
+  contra lo ya cubierto (secretos, RLS, Git, APIs, hosting, CSP/XSS, rate limiting ya
+  estaban en el roadmap de seguridad/blindaje). Orden de los pasos reorganizado para un
+  flujo coherente. El **analizador** ahora detecta monitoreo (Sentry, @vercel/analytics,
+  gtag…) y velocidad/caché (service worker, CDN); ambos en estado `info` cuando faltan
+  (no penalizan el puntaje).
+- **Seguridad de despliegue:** `.gitignore` (excluye `.env`, builds, basura de OS/editor)
+  y `vercel.json` con cabeceras en todas las rutas — **CSP** calibrado a la app
+  (`script-src 'self'`, sin `unsafe-inline`; `connect-src` permite la API de GitHub),
+  HSTS, X-Frame-Options DENY, X-Content-Type-Options, Referrer-Policy y Permissions-Policy.
+  Se eliminó el único `onclick` inline (toggle de tema) para poder usar el CSP estricto.
+- **Conectar GitHub:** conector con token personal (solo lectura, en localStorage) para
+  elegir repos de una lista buscable —incluidos privados— sin pegar enlaces, montado en
+  **Analizar** y **Seguridad** (token compartido). `ghJSON`/`ghText` envían `Authorization`
+  cuando hay token y caen a la API de contenidos para leer repos privados; el límite de la
+  API sube a 5.000/hora. Sin backend.
+- **Botón de apoyo/venta:** tarjeta "Apóyame" en Inicio, configurable en una línea
+  (`SUPPORT_URL`) con un checkout alojado (Dodo, Lemon Squeezy, Ko-fi…). Oculta mientras no
+  haya enlace y solo acepta `https://` (ignora esquemas peligrosos). Monetizar sin backend.
+- **Monitoreo propio:** analítica de Vercel (visitas + velocidad) vía scripts de mismo
+  origen compatibles con el CSP (requiere activar Web Analytics/Speed Insights en el panel),
+  y registro local de fallos (`window.onerror`/`unhandledrejection` → últimos 20 en
+  localStorage, inspeccionables con `mapaErrors()` en consola). Cero servicios externos.
+- **Verificación:** cada cambio probado ejecutando `app.js` real en jsdom — roadmap (13✓),
+  analizador (13✓), conexión GitHub en dos secciones (18✓ + 15✓), botón de apoyo (11✓) y
+  monitoreo (13✓), todos con 0 fallos. Despliegue en vivo confirmado vía fetch autenticado
+  de Vercel (HTML, `app.js`, `styles.css` y cabeceras CSP).
 
 ### PWA instalable + offline y atajos de teclado (2026-06-08)
 - **PWA:** `manifest.webmanifest` (nombre, iconos 192/512 `any maskable`, `display:standalone`, colores) + `sw.js` (service worker **network-first** para contenido propio, con caché de respaldo; la API de GitHub y externos van directos a la red). Servida por web (HTTPS o `localhost`) la app se **instala** y **carga sin conexión**; el SW se registra solo en `http/https` (en `file://` no aplica y el doble clic sigue igual). Iconos generados desde `icon.svg` (brújula violeta sobre fondo oscuro).

@@ -241,10 +241,11 @@
       </div>
 
       <div id="secAuditar">
+        <div class="card" id="ghConnectSec"></div>
         <div class="card">
-          <label>Enlace del repositorio (público)</label>
+          <label>Enlace del repositorio</label>
           <input id="secUrl" placeholder="https://github.com/usuario/mi-proyecto">
-          <div class="hint">Reviso el código en busca de secretos filtrados, dependencias riesgosas y prácticas inseguras. Solo lectura; no modifico nada.</div>
+          <div class="hint">Pega un enlace de GitHub (o <code>usuario/repo</code>), o conéctate arriba para elegir de tu lista. Reviso el código en busca de secretos filtrados, dependencias riesgosas y prácticas inseguras. Solo lectura; no modifico nada.</div>
           <div class="row" style="margin-top:14px"><button class="btn" id="secBtn"><span class="i"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/></svg></span> Auditar seguridad</button></div>
         </div>
         <div id="secResult" style="display:none"></div>
