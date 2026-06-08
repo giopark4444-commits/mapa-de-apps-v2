@@ -784,6 +784,9 @@ function runChecks(ctx){
   const license=!!(meta.license)||has(/^license/)||has(/\/license/);
   const gitignoreHas=has(/\.gitignore$/);
   const hasExamples=has(/\/examples?\//)||has(/\/demo/)||(readme&&/```/.test(readme));
+  // monitoreo (analítica o registro de errores) y caché/velocidad: señales para los checks de mantenimiento/publicación
+  const monitoring=dep('@sentry')||dep('sentry')||dep('@vercel/analytics')||dep('posthog')||dep('logrocket')||dep('bugsnag')||dep('mixpanel')||dep('@datadog')||has(/sentry\.(client|server|edge)\.config/)||(ctx.htmlTxt&&/(googletagmanager|gtag\(|plausible\.io|umami|posthog|sentry|vercel\/analytics)/i.test(ctx.htmlTxt));
+  const swCache=has(/(^|\/)sw\.js$/)||has(/service-worker/i)||has(/workbox/i)||dep('workbox');
 
   // ---- FASE 0: Idea / documentación ----
   P(0,'README que explica la idea',
@@ -912,9 +915,24 @@ function runChecks(ctx){
       (buildScript||K.kind==='static')?null:[
         {name:'Que Claude lo agregue',tag:'recomendado',desc:'Añade los comandos de build/start a tu package.json.',ex:'"Agrega los scripts de build y start a mi package.json."'},
       ]);
+    if(isApp) P(6,'Velocidad de carga (caché y compresión)',
+      (swCache||deployCfg)?'ok':'info',
+      swCache?'Tiene service worker (caché / offline)':(deployCfg?'Tu hosting (CDN) suele comprimir y cachear solo':'No detecté optimización de carga'),
+      'Una app que carga rápido retiene usuarios. El hosting suele comprimir solo; un service worker hace que la 2ª visita abra al instante.',false,
+      (swCache||deployCfg)?null:[
+        {name:'Confirma compresión y caché',tag:'recomendado',desc:'Verifica que tu hosting sirva comprimido y cachee lo que no cambia.',ex:'"Optimiza la velocidad de mi app publicada: confirma que el hosting la sirve comprimida (gzip/brotli) y cachea los archivos que no cambian. Paso a paso."'},
+      ]);
   }
 
-  // ---- FASE 7: Legal / docs para vender ----
+  // ---- FASE 7: Mantenimiento / legal / docs ----
+  if(isApp) P(7,'Saber si algo falla en producción (monitoreo)',
+    monitoring?'ok':'info',
+    monitoring?'Detecté analítica o registro de errores':'No detecté monitoreo (opcional para empezar)',
+    'Al publicar, conviene enterarte si algo se rompe para tus usuarios. Empieza gratis con la analítica de tu hosting; deja Sentry para cuando crezca.',false,
+    monitoring?null:[
+      {name:'Analítica de tu hosting',tag:'gratis, primero',desc:'En Vercel/Netlify se activa en un clic: visitas y velocidad real.',ex:'"Activa la analítica gratis de mi hosting (Vercel/Netlify) y añade un aviso básico de errores en el navegador. Paso a paso."'},
+      {name:'Sentry',tag:'opcional, cuando crezca',desc:'Te avisa de los errores reales de tus usuarios, con la línea exacta.',ex:'"Integra Sentry en mi app para registrar errores de producción. Explícame la configuración mínima."'},
+    ]);
   P(7,'Licencia (clave para vender)',license?'ok':'missing',license?'Tiene LICENSE':'Sin licencia',
     'Sin licencia, legalmente no queda claro si otros pueden usarla o comprarla.',true,
     license?null:[
