@@ -1,4 +1,29 @@
 /* ============================================================
+   MONITOREO PROPIO (sin servicios externos)
+   ------------------------------------------------------------
+   - Analítica: los scripts de Vercel (visitas + velocidad) se cargan
+     desde index.html. Aquí solo dejamos el "shim" para encolar eventos.
+   - Errores: registramos los fallos del cliente en localStorage (los
+     últimos 20) para que, si algo se rompe, quede rastro. Escribe
+     mapaErrors() en la consola del navegador para verlos.
+   ============================================================ */
+window.va = window.va || function(){ (window.vaq = window.vaq || []).push(arguments); };
+(function(){
+  const KEY='mapa_errlog_v1', MAX=20;
+  function logErr(kind,msg){
+    try{
+      const list=JSON.parse(localStorage.getItem(KEY)||'[]');
+      list.unshift({t:new Date().toISOString(),kind,msg:String(msg||'').slice(0,300)});
+      localStorage.setItem(KEY,JSON.stringify(list.slice(0,MAX)));
+    }catch(_){}
+    try{ if(window.va) window.va('event',{name:'client_error'}); }catch(_){} // si la analítica está activa, suma el fallo (sin datos personales)
+  }
+  window.addEventListener('error',e=>logErr('error',(e&&e.message||'error')+(e&&e.filename?(' @ '+e.filename+':'+(e.lineno||'')):'')));
+  window.addEventListener('unhandledrejection',e=>logErr('promise',(e&&e.reason&&(e.reason.message||e.reason))||'unhandledrejection'));
+  window.mapaErrors=function(){try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(_){return [];}};
+})();
+
+/* ============================================================
    APOYO / VENTA  ·  pega aquí tu link de pago para activar el botón
    ------------------------------------------------------------
    SUPPORT_URL: el enlace de checkout (Dodo Payments, Lemon Squeezy,
