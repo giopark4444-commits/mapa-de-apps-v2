@@ -1,3 +1,25 @@
+/* ============================================================
+   APOYO / VENTA  ·  pega aquí tu link de pago para activar el botón
+   ------------------------------------------------------------
+   SUPPORT_URL: el enlace de checkout (Dodo Payments, Lemon Squeezy,
+   Ko-fi, Stripe Payment Link…). Mientras esté vacío, el botón NO se
+   muestra. En cuanto pongas un enlace válido, aparece solo.
+   ============================================================ */
+const SUPPORT_URL='';                       // ej: 'https://checkout.dodopayments.com/buy/xxxxx'
+const SUPPORT_TITLE='¿Te sirve Mapa de Apps?';
+const SUPPORT_TEXT='Es gratis y se mantiene con el apoyo de gente como tú. Si te ayudó, considera apoyar el proyecto.';
+const SUPPORT_CTA='Apóyame ☕';
+function renderSupport(){
+  const slot=document.getElementById('supportSlot'); if(!slot)return;
+  const url=(SUPPORT_URL||'').trim();
+  if(!/^https:\/\//i.test(url)){slot.innerHTML='';return;} // sin link válido → no se muestra nada
+  slot.innerHTML=`<div class="card support-card">
+    <div class="sup-ic">${ic('coin')}</div>
+    <div class="sup-tx"><h3>${esc(SUPPORT_TITLE)}</h3><p style="font-size:13.3px;margin:4px 0 0">${esc(SUPPORT_TEXT)}</p></div>
+    <a class="btn sup-btn" href="${escAttr(url)}" target="_blank" rel="noopener">${esc(SUPPORT_CTA)}</a>
+  </div>`;
+}
+
 /* ===== navegación ===== */
 const pages=[...document.querySelectorAll('.page')];
 function go(id){
@@ -1791,7 +1813,7 @@ document.getElementById('secBtn').addEventListener('click',auditSecurity);
 document.getElementById('secUrl').addEventListener('keydown',e=>{if(e.key==='Enter')auditSecurity();});
 
 /* ===== arranque ===== */
-renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();
+renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();renderSupport();
 
 /* ===== preferencias de apariencia (sección Ajustes) ===== */
 const PREF_DEFAULTS={accent:'violeta',glow:'normal',railIc:'normal',railMode:'hover',fontZoom:'normal',inkTone:'neutro',inkContrast:'normal'};
