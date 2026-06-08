@@ -7,10 +7,17 @@ conocimientos de código— a planear, construir, asegurar y publicar una app co
 ayuda de Claude. Se abre con doble clic en cualquier navegador; no requiere instalar
 nada y todo se guarda en tu propio navegador.
 
-Son tres archivos que viajan juntos: `index.html` (estructura), `styles.css`
-(apariencia) y `app.js` (lógica). Mantén los tres en la misma carpeta; abres
-`index.html` y listo. Funciona offline (salvo el analizador de repos, que consulta
-GitHub).
+El núcleo son tres archivos que viajan juntos: `index.html` (estructura), `styles.css`
+(apariencia) y `app.js` (lógica). Mantén la carpeta junta; abres `index.html` y listo.
+Funciona offline (salvo el analizador de repos, que consulta GitHub).
+
+**Instalable (PWA):** servida por web (HTTPS), la app se puede **instalar** en el
+teléfono o el escritorio y **funciona sin conexión** gracias a un service worker
+(`sw.js` + `manifest.webmanifest` + iconos). Abierta con doble clic (`file://`) sigue
+funcionando igual; la instalación solo aplica a la versión web.
+
+**Atajos de teclado** (escritorio): `]` / `[` o `Alt`+`→` / `←` para cambiar de
+sección, `t` para alternar el tema y `?` para ver la ayuda.
 
 ## Qué incluye
 

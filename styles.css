@@ -346,3 +346,11 @@
     .lead{font-size:13px}
     .menu-dropdown{left:12px;right:12px}
   }
+  /* ===== ayuda de atajos de teclado (overlay) ===== */
+  #kb-help{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px);animation:kbfade .15s ease}
+  @keyframes kbfade{from{opacity:0}to{opacity:1}}
+  .kb-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;min-width:300px;max-width:90vw;box-shadow:0 8px 30px rgba(0,0,0,.4);font-size:13px;color:var(--ink)}
+  .kb-card b{display:block;margin-bottom:12px;font-size:13px;letter-spacing:.5px;color:var(--ink)}
+  .kb-row{display:flex;align-items:center;gap:10px;margin:7px 0;color:var(--ink-soft)}
+  .kb-row span{margin-left:auto;text-align:right}
+  .kb-card kbd{font-family:var(--mono);font-size:11px;background:var(--panel-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:2px 7px;color:var(--ink)}

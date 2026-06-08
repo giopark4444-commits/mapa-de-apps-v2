@@ -16,9 +16,10 @@ traductor entre tus ideas y el lenguaje técnico que Claude entiende, para plane
 construir y publicar una app.
 
 - **Cómo se usa:** se abre con doble clic en `index.html` en cualquier navegador. Los
-  tres archivos deben estar en la misma carpeta y viajar juntos (si compartes, comparte
-  la carpeta entera). No requiere instalar nada ni internet (salvo el analizador de
-  repos, que consulta GitHub).
+  archivos del núcleo (`index.html` + `styles.css` + `app.js`) deben estar en la misma
+  carpeta y viajar juntos (si compartes, comparte la carpeta entera). No requiere
+  instalar nada ni internet (salvo el analizador de repos, que consulta GitHub).
+  **Servida por web también es una PWA**: se puede instalar y usar sin conexión.
 - **Dónde se guarda todo:** en el navegador (localStorage). Cada cosa se autoguarda.
 - **Repositorio:** https://github.com/giopark4444-commits/mapa-de-apps-v2 (público)
 - **Carpeta local:** `~/Desktop/mapa-de-apps/`
@@ -145,6 +146,12 @@ Tres pestañas:
 ---
 
 ## 8. Cambios recientes
+
+### PWA instalable + offline y atajos de teclado (2026-06-08)
+- **PWA:** `manifest.webmanifest` (nombre, iconos 192/512 `any maskable`, `display:standalone`, colores) + `sw.js` (service worker **network-first** para contenido propio, con caché de respaldo; la API de GitHub y externos van directos a la red). Servida por web (HTTPS o `localhost`) la app se **instala** y **carga sin conexión**; el SW se registra solo en `http/https` (en `file://` no aplica y el doble clic sigue igual). Iconos generados desde `icon.svg` (brújula violeta sobre fondo oscuro).
+- **`theme-color` dinámico:** la barra del navegador sigue al tema (oscuro `#08090b` / claro `#fafafa`), actualizado en `sync()`.
+- **Atajos de teclado (escritorio):** `]` / `[` y `Alt`+`→`/`←` (sección siguiente/anterior), `t` (tema), `?` (overlay de ayuda), `Esc` (cerrar). Se ignoran cuando escribes en un campo.
+- Verificado sobre HTTP real con Chromium: manifest válido, service worker **activo**, atajos operativos, `theme-color` sincronizado y **carga offline** sirviendo las 12 secciones desde caché.
 
 ### Adaptación a dispositivos ampliada (2026-06-07)
 - **Áreas seguras iOS (notch / barra de inicio):** `viewport-fit=cover` + `env(safe-area-inset-*)` con `max()` en `main`, riel, toast y reglas móviles. En iPhones con notch el contenido ya no queda tapado; en dispositivos sin notch el padding base se conserva (env resuelve a 0).

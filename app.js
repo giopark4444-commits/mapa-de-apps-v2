@@ -1733,7 +1733,7 @@ function setPref(k,v){
 (function(){
   const saved=localStorage.getItem('maTheme');
   if(saved==='light'||saved==='dark')document.documentElement.dataset.theme=saved;
-  const sync=()=>{const l=document.getElementById('themeLabel');if(l)l.textContent=document.documentElement.dataset.theme==='dark'?'Tema claro':'Tema oscuro';};
+  const sync=()=>{const l=document.getElementById('themeLabel');if(l)l.textContent=document.documentElement.dataset.theme==='dark'?'Tema claro':'Tema oscuro';const tc=document.getElementById('theme-color-meta');if(tc)tc.setAttribute('content',document.documentElement.dataset.theme==='light'?'#fafafa':'#08090b');};
   sync();
   window.toggleTheme=function(){
     const h=document.documentElement;
@@ -1783,4 +1783,45 @@ function renderAjustes(){
   if(!w||!a)return;
   a.addEventListener('mouseenter',()=>{if((w.dataset.railmode||'hover')==='hover')w.classList.add('exp')});
   a.addEventListener('mouseleave',()=>{if((w.dataset.railmode||'hover')==='hover')w.classList.remove('exp')});
+})();
+
+/* ===== PWA: registrar service worker (solo en http/https; en file:// no aplica) ===== */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('./sw.js').catch(()=>{});});
+}
+
+/* ===== atajos de teclado (escritorio) ===== */
+(function(){
+  const order=pages.map(p=>p.id);
+  const curIdx=()=>{const on=document.querySelector('.page.on');return on?Math.max(0,order.indexOf(on.id)):0;};
+  const goIdx=i=>go(order[(i+order.length)%order.length]);
+  function toggleHelp(){
+    let h=document.getElementById('kb-help');
+    if(h){h.remove();return;}
+    h=document.createElement('div');h.id='kb-help';
+    h.innerHTML=`<div class="kb-card"><b>Atajos de teclado</b>
+      <div class="kb-row"><kbd>]</kbd> / <kbd>[</kbd><span>Sección siguiente / anterior</span></div>
+      <div class="kb-row"><kbd>Alt</kbd>+<kbd>→</kbd> / <kbd>←</kbd><span>Sección siguiente / anterior</span></div>
+      <div class="kb-row"><kbd>t</kbd><span>Cambiar tema claro/oscuro</span></div>
+      <div class="kb-row"><kbd>?</kbd><span>Mostrar / ocultar esta ayuda</span></div>
+      <div class="kb-row"><kbd>Esc</kbd><span>Cerrar</span></div></div>`;
+    h.addEventListener('click',()=>h.remove());
+    document.body.appendChild(h);
+  }
+  document.addEventListener('keydown',e=>{
+    const t=e.target;
+    if(t&&(t.matches&&t.matches('input,textarea,select')||t.isContentEditable))return;
+    if(e.ctrlKey||e.metaKey)return;
+    const help=document.getElementById('kb-help');
+    if(e.key==='Escape'){if(help)help.remove();document.getElementById('menu-dropdown')?.classList.remove('open');return;}
+    if(e.altKey){
+      if(e.key==='ArrowRight'){e.preventDefault();goIdx(curIdx()+1);}
+      else if(e.key==='ArrowLeft'){e.preventDefault();goIdx(curIdx()-1);}
+      return;
+    }
+    if(e.key===']'){e.preventDefault();goIdx(curIdx()+1);}
+    else if(e.key==='['){e.preventDefault();goIdx(curIdx()-1);}
+    else if(e.key==='t'||e.key==='T'){e.preventDefault();if(typeof toggleTheme==='function')toggleTheme();}
+    else if(e.key==='?'){e.preventDefault();toggleHelp();}
+  });
 })();
