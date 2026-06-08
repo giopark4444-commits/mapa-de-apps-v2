@@ -1747,6 +1747,8 @@ function setPref(k,v){
     applyPrefs();
     if(typeof renderAjustes==='function')renderAjustes();
   };
+  const railBtn=document.getElementById('themeBtnRail');
+  if(railBtn)railBtn.addEventListener('click',window.toggleTheme);
 })();
 applyPrefs();
 
