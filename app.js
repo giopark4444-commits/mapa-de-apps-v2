@@ -450,8 +450,8 @@ const PHASES=[
    {t:'Imagina las pantallas principales',how:'Dibuja en papel (¡vale!) las pantallas y cómo se pasa de una a otra.',tools:['Lápiz y papel','Excalidraw (gratis, online)'],ex:'Pantalla lista → tocar un ítem → pantalla detalle.'},
    {t:'Define si necesitas backend y base de datos',how:'¿Tu app debe recordar cosas para varios usuarios? Entonces sí. Si no, solo frontend.',tools:['Mapa de arquitectura (esta app)'],ex:'Una calculadora: no. Una tienda: sí.'},
    {t:'Elige tu stack',how:'Usa el ranking que esta app te generó. Si dudas, ve siempre con la opción nº1.',tools:['Proyecto actual → ranking de stack'],ex:'Frontend React + datos en Supabase + deploy en Vercel.'},
-   {t:'Pídele a Claude un boceto de la interfaz',how:'Claude puede generar una primera versión visual para reaccionar sobre algo concreto.',tools:['frontend-design (skill que ya tienes)'],ex:'"Crea la pantalla principal con [estos elementos], estilo minimalista."'},
    {t:'Piensa si podrá crecer (sin sobre-construir)',how:'No necesitas aguantar millones de usuarios hoy, pero elige servicios que crezcan contigo (la nube escala sola) y no te ates a algo que se quede chico. Diséñalo simple ahora; ya crecerás cuando haga falta.',tools:['Mapa de arquitectura (esta app)','Servicios serverless (Vercel/Supabase)'],ex:'"Mi app es [tu idea] con [tu stack]. ¿Aguantaría si muchos usuarios la usan a la vez? Dime qué escala solo, qué se podría quedar corto y qué cambiarías más adelante, sin complicarme de más ahora."'},
+   {t:'Pídele a Claude un boceto de la interfaz',how:'Con todas las decisiones tomadas, Claude genera una primera versión visual para reaccionar sobre algo concreto.',tools:['frontend-design (skill que ya tienes)'],ex:'"Crea la pantalla principal con [estos elementos], estilo minimalista."'},
   ]},
  {name:'Preparar el entorno',icon:ic('tool'),intro:'Dejar todo listo para construir. Claude te guía en cada instalación, paso a paso.',
   tasks:[
@@ -485,17 +485,17 @@ const PHASES=[
   tasks:[
    {t:'Elige dónde publicar',how:'Usa la recomendación de deploy de tu mapa. Casi siempre hay opción gratis.',tools:['Proyecto actual → ranking de deploy'],ex:'Web → Vercel. Móvil → Expo + tiendas.'},
    {t:'Sube el proyecto',how:'Conecta tu GitHub con el servicio y publica. Claude te guía clic a clic.',tools:['Vercel/Netlify + GitHub'],ex:'"Guíame paso a paso para publicar en Vercel desde mi GitHub."'},
-   {t:'Prueba la versión publicada',how:'La versión online puede comportarse distinto a localhost. Pruébala igual.',tools:['Tu navegador y tu celular'],ex:'Abre el enlace público y repite las pruebas clave.'},
-   {t:'Comparte el enlace',how:'¡Tu app ya existe en internet! Compártela y empieza a recibir comentarios.',tools:['El enlace de tu deploy'],ex:'"mi-app.vercel.app" — mándalo a 3 personas de confianza.'},
    {t:'Haz que cargue rápido (caché y compresión)',how:'Una app veloz retiene usuarios. Tu hosting suele comprimir y servir desde una CDN solo; confírmalo y guarda en caché lo que no cambia para que la 2ª visita abra al instante.',tools:['CDN de tu hosting (Vercel/Netlify)','Service worker (PWA)'],ex:'"Optimiza la velocidad de mi app publicada: confirma que el hosting la sirve comprimida (gzip/brotli) y cachea los archivos que no cambian. Dime qué revisar y cómo, paso a paso."'},
+   {t:'Prueba la versión publicada',how:'La versión online puede comportarse distinto a localhost. Pruébala igual que en local.',tools:['Tu navegador y tu celular'],ex:'Abre el enlace público y repite las pruebas clave.'},
+   {t:'Comparte el enlace',how:'¡Tu app ya existe en internet! Compártela y empieza a recibir comentarios.',tools:['El enlace de tu deploy'],ex:'"mi-app.vercel.app" — mándalo a 3 personas de confianza.'},
   ]},
  {name:'Mantener y mejorar',icon:ic('refresh'),intro:'Una app viva se actualiza. Escucha a quien la usa y mejora de a poco.',
   tasks:[
+   {t:'Entérate si algo falla en producción',how:'Lo primero al mantener una app es poder enterarte si algo se rompe para tus usuarios. Empieza con lo gratis que ya trae tu hosting (analítica de visitas y velocidad). Si más adelante quieres ver los errores reales de tus usuarios, puedes complementar con una "alarma" como Sentry. No es obligatorio para empezar.',tools:['Analítica de tu hosting (Vercel)','Sentry (opcional, cuando crezca)'],ex:'"Quiero enterarme si mi app falla para mis usuarios. Activa primero la analítica gratis de mi hosting y añade un aviso básico de errores en el navegador. Déjame Sentry como opción para más adelante. Explícamelo paso a paso."'},
    {t:'Recoge comentarios de usuarios',how:'Lo que tú crees obvio puede confundir a otros. Pregúntales.',tools:['Notas del proyecto'],ex:'Anota: "3 personas no encontraron el botón de guardar".'},
    {t:'Lista mejoras y nuevos errores',how:'Mantén una lista priorizada. Ataca lo importante primero.',tools:['Notas / un documento simple'],ex:'Prioridad alta: arreglar login. Baja: modo oscuro.'},
    {t:'Implementa de a poco',how:'Pequeños cambios, probados y guardados. Igual que al construir.',tools:['Claude Code + Git'],ex:'Un cambio → probar → guardar versión → siguiente.'},
    {t:'Guarda copias de seguridad',how:'Con Git ya respaldas el código. Exporta también tus proyectos de esta app.',tools:['Git','Exportar respaldo (esta app)'],ex:'Haz un commit y exporta tu respaldo cada cierto tiempo.'},
-   {t:'Entérate si algo falla en producción',how:'Lo peor es que algo se rompa para tus usuarios y tú no te enteres. Empieza con lo gratis que ya trae tu hosting (analítica de visitas y velocidad). Si más adelante quieres ver los errores reales de tus usuarios, puedes complementar con una "alarma" como Sentry. No es obligatorio para empezar.',tools:['Analítica de tu hosting (Vercel)','Sentry (opcional, cuando crezca)'],ex:'"Quiero enterarme si mi app falla para mis usuarios. Activa primero la analítica gratis de mi hosting y añade un aviso básico de errores en el navegador. Déjame Sentry como opción para más adelante. Explícamelo paso a paso."'},
   ]},
 ];
 
