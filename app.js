@@ -280,6 +280,8 @@ document.getElementById('newProjBtn2').addEventListener('click',()=>{newProject(
 document.getElementById('newProjBtn').addEventListener('click',()=>{newProject();renderDashboard();go('proyecto');});
 
 function projProgress(p){const total=PHASES.reduce((a,ph)=>a+ph.tasks.length,0);const rm=p.roadmap||{};let done=0;PHASES.forEach((ph,i)=>ph.tasks.forEach((_,j)=>{if(rm[`p${i}_${j}`])done++;}));return {done,total,pct:total?Math.round(done/total*100):0};}
+// primer paso pendiente del roadmap (lo comparten el roadmap y la tarjeta de Inicio)
+function firstPendingStep(roadmap){roadmap=roadmap||{};for(let i=0;i<PHASES.length;i++){for(let j=0;j<PHASES[i].tasks.length;j++){if(!roadmap[`p${i}_${j}`])return {i,j};}}return null;}
 // color del nivel de seguridad — único lugar donde viven los umbrales (dashboard, inicio y reporte lo comparten)
 function secColor(sa){return sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)';}
 // recorta nombres largos en una palabra completa y con elipsis (evita "…apunta los libros q")
@@ -453,7 +455,7 @@ function generate(silent){
   const v=readForm();
   if(!v.que.trim()){showToast('Escribe primero qué hace tu app');return;}
   active().fields=v;active().generated=true;
-  if(active().name.startsWith('Proyecto ')) active().name=truncName(v.que);
+  if(/^Proyecto \d+$/.test(active().name)) active().name=truncName(v.que); // solo renombra los autogenerados ("Proyecto 1"), no nombres puestos por ti
   saveDB();renderSwitch();refreshChrome();
   const needsBackend=v.datos==='nube'||v.login==='si',needsDB=v.datos!=='no';
   const platform={web:'Aplicación web (navegador)',movil:'App móvil',ambos:'Web + móvil',nose:'Web (recomendado para empezar)'}[v.donde];
@@ -606,8 +608,7 @@ function renderPhases(){
   const v=active().fields, ty=detectType(v), rm=active().roadmap||(active().roadmap={});
   document.getElementById('rmTypeTag').innerHTML=v.que?`<span class="typetag" style="margin-left:6px">${ty.e} ${ty.label}</span>`:'';
   // next step
-  let next=null;
-  outer: for(let i=0;i<PHASES.length;i++){for(let j=0;j<PHASES[i].tasks.length;j++){if(!rm[`p${i}_${j}`]){next={i,j};break outer;}}}
+  const next=firstPendingStep(rm);
   const nb=document.getElementById('nextBanner');
   if(!v.que){nb.innerHTML=`<span class="nb-ic">${ic('note')}</span><div>Primero describe tu idea en <b>Proyecto actual</b> y genera el mapa. Así el roadmap se adaptará a tu tipo de app con ejemplos a medida.</div>`;}
   else if(next){nb.innerHTML=`<span class="nb-ic">${ic('arrowRight')}</span><div><b>Tu siguiente paso:</b> ${PHASES[next.i].icon} ${PHASES[next.i].name} → ${PHASES[next.i].tasks[next.j].t}</div>`;}
@@ -646,7 +647,6 @@ function updateProg(){
 /* Inicio: tarjeta dinámica de "tu siguiente paso" según el proyecto activo */
 function renderHome(){
   const box=document.getElementById('nextStepCard'); if(!box) return;
-  document.getElementById('glossaryCard').style.display='';
   const a=active(), v=a.fields||{};
   const btn=(go,label,ghost)=>`<button class="btn ${ghost?'ghost ':''}sm" data-go="${go}">${label}</button>`;
   let ic_,lbl,title,desc,acts;
@@ -658,8 +658,7 @@ function renderHome(){
   } else {
     const pr=projProgress(a);
     // encontrar siguiente paso pendiente del roadmap
-    let next=null;
-    outer: for(let i=0;i<PHASES.length;i++){for(let j=0;j<PHASES[i].tasks.length;j++){if(!(a.roadmap||{})[`p${i}_${j}`]){next={i,j};break outer;}}}
+    const next=firstPendingStep(a.roadmap);
     const ty=detectType(v);
     if(!a.generated){
       ic_='pen'; lbl='Continúa con '+esc(a.name);
@@ -1414,7 +1413,7 @@ function renderReport(ctx,checks){
      <button class="btn" id="anApply">${ic('pin')} Crear proyecto con este avance</button>
      <button class="btn ghost" id="anPrompt2">${ic('message')} Prompt para que Claude lo arregle</button>
    </div><div class="prompt" id="anFixWrap" style="display:none;margin-top:14px"><div class="ph">${ic('tool')} Prompt para Claude <button class="btn ghost sm copy" data-copy="#anFix">Copiar</button></div><pre id="anFix"></pre></div></div>`;
-  document.getElementById('anApply').addEventListener('click',applyAnalysisToRoadmap);
+  document.getElementById('anApply').addEventListener('click',function(){if(this.disabled)return;this.disabled=true;applyAnalysisToRoadmap();});
   document.getElementById('anPrompt2').addEventListener('click',()=>{
     const miss=checks.filter(c=>c.status!=='ok'&&c.status!=='info').sort((a,b)=>(b.critical?1:0)-(a.critical?1:0));
     const list=miss.map(c=>{
