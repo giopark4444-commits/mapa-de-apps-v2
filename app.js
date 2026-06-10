@@ -47,6 +47,8 @@ function renderSupport(){
 
 /* ===== navegación ===== */
 const pages=[...document.querySelectorAll('.page')];
+const isPageId=id=>!!id&&pages.some(p=>p.id===id);
+let navGuard=false; // evita bucles entre go() y el evento hashchange
 function go(id){
   pages.forEach(p=>p.classList.toggle('on',p.id===id));
   document.querySelectorAll('#nav .nav-b').forEach(b=>b.classList.toggle('on',b.dataset.go===id));
@@ -57,9 +59,13 @@ function go(id){
   if(id==='proyecto'){renderSwitch();loadForm();}
   if(id==='dispositivos') renderDevices();
   if(id==='seguridad') renderBlindaje(); // precarga la pestaña de blindaje
+  // refleja la sección en la URL (#seccion): F5 te deja donde estabas y el enlace es compartible
+  if(!navGuard){try{if(location.hash.replace(/^#/,'')!==id)history.replaceState(null,'','#'+id);}catch(_){}}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.go)));
+// navegar por la URL: al cambiar el hash (enlace, atrás/adelante) sincroniza la sección
+window.addEventListener('hashchange',()=>{const id=location.hash.replace(/^#/,'');if(isPageId(id)){navGuard=true;go(id);navGuard=false;}});
 const hamburgerSvg='<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg>';
 const logoSvg='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.2 5-5 2.2 2.2-5z"/></svg>';
 const navButtons=[...document.querySelectorAll('#nav .nav-b')].map(b=>`<button class="nav-b ${b.classList.contains('on')?'on':''}" data-go="${b.dataset.go}"><span class="ic">${b.querySelector('.ic').innerHTML}</span> <span class="lbl">${(b.querySelector('.lbl')||{textContent:b.textContent}).textContent.trim()}</span></button>`).join('');
@@ -1454,10 +1460,17 @@ const GH_MOUNTS=[
 ];
 function ghMountFor(box){return GH_MOUNTS.find(m=>m.box===box.id);}
 async function ghMyRepos(){
-  const r=await fetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member',{headers:ghHeaders()});
-  if(r.status===401)throw new Error('auth');
-  if(!r.ok)throw new Error('http');
-  return r.json();
+  // pagina hasta 5 páginas (≈500 repos) para no quedarnos solo con los primeros 100
+  const all=[];
+  for(let page=1;page<=5;page++){
+    const r=await fetch('https://api.github.com/user/repos?per_page=100&page='+page+'&sort=updated&affiliation=owner,collaborator,organization_member',{headers:ghHeaders()});
+    if(r.status===401)throw new Error('auth');
+    if(!r.ok)throw new Error('http');
+    const batch=await r.json();
+    all.push(...batch);
+    if(!Array.isArray(batch)||batch.length<100)break; // última página
+  }
+  return all;
 }
 function renderGhConnects(){GH_MOUNTS.forEach(m=>{const b=document.getElementById(m.box);if(b)renderGhConnect(b);});}
 function renderGhConnect(box){
@@ -1870,6 +1883,8 @@ document.getElementById('secUrl').addEventListener('keydown',e=>{if(e.key==='Ent
 
 /* ===== arranque ===== */
 renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();renderSupport();
+// abre la sección indicada en la URL (#seccion) al cargar; si no hay, se queda en Inicio
+(function(){const id=location.hash.replace(/^#/,'');if(isPageId(id)&&id!=='inicio')go(id);})();
 
 /* ===== preferencias de apariencia (sección Ajustes) ===== */
 const PREF_DEFAULTS={accent:'violeta',glow:'normal',railIc:'normal',railMode:'hover',fontZoom:'normal',inkTone:'neutro',inkContrast:'normal'};
@@ -1990,25 +2005,36 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   const order=[...document.querySelectorAll('#nav .nav-b')].map(b=>b.dataset.go);
   const curIdx=()=>{const on=document.querySelector('.page.on');return on?Math.max(0,order.indexOf(on.id)):0;};
   const goIdx=i=>go(order[(i+order.length)%order.length]);
+  let helpLastFocus=null;
+  function closeHelp(){
+    const h=document.getElementById('kb-help');if(!h)return;
+    h.remove();
+    if(helpLastFocus&&helpLastFocus.focus){try{helpLastFocus.focus();}catch(_){}}
+    helpLastFocus=null;
+  }
   function toggleHelp(){
-    let h=document.getElementById('kb-help');
-    if(h){h.remove();return;}
-    h=document.createElement('div');h.id='kb-help';
-    h.innerHTML=`<div class="kb-card"><b>Atajos de teclado</b>
+    if(document.getElementById('kb-help')){closeHelp();return;}
+    helpLastFocus=document.activeElement; // recordamos a dónde devolver el foco
+    const h=document.createElement('div');h.id='kb-help';
+    h.setAttribute('role','dialog');h.setAttribute('aria-modal','true');h.setAttribute('aria-label','Atajos de teclado');
+    h.innerHTML=`<div class="kb-card" tabindex="-1"><b>Atajos de teclado</b>
       <div class="kb-row"><kbd>]</kbd> / <kbd>[</kbd><span>Sección siguiente / anterior</span></div>
       <div class="kb-row"><kbd>Alt</kbd>+<kbd>→</kbd> / <kbd>←</kbd><span>Sección siguiente / anterior</span></div>
       <div class="kb-row"><kbd>t</kbd><span>Cambiar tema claro/oscuro</span></div>
       <div class="kb-row"><kbd>?</kbd><span>Mostrar / ocultar esta ayuda</span></div>
       <div class="kb-row"><kbd>Esc</kbd><span>Cerrar</span></div></div>`;
-    h.addEventListener('click',()=>h.remove());
+    h.addEventListener('click',()=>closeHelp());
+    // atrapa el foco: sin controles internos, Tab se queda en la tarjeta
+    h.addEventListener('keydown',ev=>{if(ev.key==='Tab'){ev.preventDefault();h.querySelector('.kb-card').focus();}});
     document.body.appendChild(h);
+    h.querySelector('.kb-card').focus();
   }
   document.addEventListener('keydown',e=>{
     const t=e.target;
     if(t&&(t.matches&&t.matches('input,textarea,select')||t.isContentEditable))return;
     if(e.ctrlKey||e.metaKey)return;
     const help=document.getElementById('kb-help');
-    if(e.key==='Escape'){if(help)help.remove();document.getElementById('menu-dropdown')?.classList.remove('open');return;}
+    if(e.key==='Escape'){if(help)closeHelp();document.getElementById('menu-dropdown')?.classList.remove('open');return;}
     if(e.altKey){
       if(e.key==='ArrowRight'){e.preventDefault();goIdx(curIdx()+1);}
       else if(e.key==='ArrowLeft'){e.preventDefault();goIdx(curIdx()-1);}
