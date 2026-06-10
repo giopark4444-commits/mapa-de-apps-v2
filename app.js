@@ -1887,8 +1887,8 @@ renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();rende
 
 /* ===== preferencias de apariencia (sección Ajustes) ===== */
 const PREF_DEFAULTS={accent:'violeta',glow:'normal',railIc:'normal',railMode:'hover',fontZoom:'normal',inkTone:'neutro',inkContrast:'normal'};
-// tonos elegidos para que el texto blanco de los botones tenga contraste suficiente (verde/ámbar oscurecidos)
-const PREF_ACCENTS={violeta:[139,92,246],cian:[6,182,212],verde:[5,150,105],ambar:[217,119,6],rosa:[236,72,153]};
+// colores originales; el texto del botón (--on-accent) se elige solo según luminancia
+const PREF_ACCENTS={violeta:[139,92,246],cian:[6,182,212],verde:[16,185,129],ambar:[245,158,11],rosa:[236,72,153]};
 const PREF_GLOWS={apagado:0,suave:.2,normal:.35,fuerte:.55};
 const PREF_RAIL_IC={pequeno:'15px',normal:'17px',grande:'19px'};
 const PREF_ZOOMS={compacto:.92,normal:1,grande:1.1};
@@ -1907,12 +1907,16 @@ function inkSet(theme,tone,contrast){
     : {suave:[18,38,62],normal:[10,33,66],alto:[3,25,55]}[contrast];
   return L.map(l=>`hsl(${hue} ${sat}% ${l}%)`);
 }
+// luminancia relativa (WCAG) para elegir texto blanco u oscuro sobre el acento
+function relLum([r,g,b]){const f=c=>{c/=255;return c<=0.03928?c/12.92:Math.pow((c+0.055)/1.055,2.4);};return 0.2126*f(r)+0.7152*f(g)+0.0722*f(b);}
+function onAccentInk(rgb){const L=relLum(rgb);const cw=1.05/(L+0.05),cd=(L+0.05)/0.06;return cd>cw?'#16181d':'#ffffff';}
 function applyPrefs(){
   const p=loadPrefs(), r=document.documentElement, s=r.style;
   const [cr,cg,cb]=PREF_ACCENTS[p.accent];
   s.setProperty('--accent',`rgb(${cr} ${cg} ${cb})`);
   s.setProperty('--accent-glow',`rgba(${cr},${cg},${cb},${PREF_GLOWS[p.glow]})`);
   s.setProperty('--accent-soft',`rgba(${cr},${cg},${cb},.09)`);
+  s.setProperty('--on-accent',onAccentInk([cr,cg,cb])); // texto legible sobre botones de color
   s.setProperty('--rail-ic',PREF_RAIL_IC[p.railIc]);
   const m=document.querySelector('main'); if(m)m.style.zoom=PREF_ZOOMS[p.fontZoom];
   if(p.inkTone==='neutro'&&p.inkContrast==='normal'){
