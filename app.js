@@ -63,18 +63,36 @@ document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=
 const hamburgerSvg='<svg viewBox="0 0 24 24"><path d="M3 7h18"/><path d="M3 12h18"/><path d="M3 17h18"/></svg>';
 const logoSvg='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.6 8.4l-2.2 5-5 2.2 2.2-5z"/></svg>';
 const navButtons=[...document.querySelectorAll('#nav .nav-b')].map(b=>`<button class="nav-b ${b.classList.contains('on')?'on':''}" data-go="${b.dataset.go}"><span class="ic">${b.querySelector('.ic').innerHTML}</span> <span class="lbl">${(b.querySelector('.lbl')||{textContent:b.textContent}).textContent.trim()}</span></button>`).join('');
-document.getElementById('mtop').innerHTML=`<button class="mtop-logo" title="Mapa de Apps"><span class="i">${logoSvg}</span></button><button class="hamburger" id="hamburger" title="Menú"><span class="i">${hamburgerSvg}</span></button><div class="menu-dropdown" id="menu-dropdown">${navButtons}</div>${navButtons}`;
-document.querySelectorAll('#mtop .nav-b').forEach(b=>b.addEventListener('click',()=>{go(b.dataset.go);document.getElementById('menu-dropdown').classList.remove('open');}));
-document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('menu-dropdown').classList.toggle('open'));
-document.addEventListener('click',e=>{if(!e.target.closest('#hamburger')&&!e.target.closest('#menu-dropdown'))document.getElementById('menu-dropdown').classList.remove('open');});
+document.getElementById('mtop').innerHTML=`<button class="mtop-logo" title="Mapa de Apps"><span class="i">${logoSvg}</span></button><button class="hamburger" id="hamburger" title="Menú" aria-label="Menú" aria-expanded="false" aria-controls="menu-dropdown"><span class="i">${hamburgerSvg}</span></button><div class="menu-dropdown" id="menu-dropdown">${navButtons}</div>${navButtons}`;
+const menuDrop=document.getElementById('menu-dropdown'),hamburgerBtn=document.getElementById('hamburger');
+const syncMenuAria=()=>hamburgerBtn.setAttribute('aria-expanded',menuDrop.classList.contains('open'));
+document.querySelectorAll('#mtop .nav-b').forEach(b=>b.addEventListener('click',()=>{go(b.dataset.go);menuDrop.classList.remove('open');syncMenuAria();}));
+hamburgerBtn.addEventListener('click',()=>{menuDrop.classList.toggle('open');syncMenuAria();});
+document.addEventListener('click',e=>{if(!e.target.closest('#hamburger')&&!e.target.closest('#menu-dropdown')){menuDrop.classList.remove('open');syncMenuAria();}});
 
 /* ===== toast + copiar ===== */
 const toast=document.getElementById('toast');
-function showToast(t='Copiado ✓'){toast.textContent=t;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1500);}
+let toastTimer=null;
+function showToast(t='Copiado ✓',ms=1500){toast.textContent=t;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),ms);}
+// copia robusta: usa la API del portapapeles y, si no está disponible, cae a un método antiguo
+function copyText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(text).then(()=>true,()=>fallbackCopy(text));
+  }
+  return Promise.resolve(fallbackCopy(text));
+}
+function fallbackCopy(text){
+  try{const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok;}catch(_){return false;}
+}
 document.addEventListener('click',e=>{
+  // tooltips del glosario: en táctil no hay hover, así que un toque muestra la definición
+  const g=e.target.closest('.gloss');
+  if(g&&g.getAttribute('title')){showToast(g.getAttribute('title'),4000);return;}
   const ct=e.target.closest('[data-copytext]');
-  if(ct){navigator.clipboard.writeText(ct.getAttribute('data-copytext')).then(()=>showToast('Prompt copiado'));return;}
-  const c=e.target.closest('[data-copy]');if(!c)return;navigator.clipboard.writeText(document.querySelector(c.dataset.copy).innerText).then(()=>showToast());
+  if(ct){copyText(ct.getAttribute('data-copytext')).then(ok=>showToast(ok?'Prompt copiado':'No pude copiar (cópialo a mano)'));return;}
+  const c=e.target.closest('[data-copy]');if(!c)return;
+  const src=document.querySelector(c.dataset.copy);if(!src){showToast('No encontré el texto a copiar');return;}
+  copyText(src.innerText).then(ok=>showToast(ok?'Copiado ✓':'No pude copiar (cópialo a mano)'));
 });
 function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'&#10;');}
@@ -177,9 +195,12 @@ const FIELDS=['que','problema','quien','donde','datos','login','escala','func','
 function uid(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
 function blankFields(){return {que:'',problema:'',quien:'',donde:'web',datos:'no',login:'no',escala:'hobby',func:'',integraciones:'',sensibles:'no',estilo:'auto',monetiza:'no',inspiracion:'',presupuesto:'gratis',plazo:'sin-prisa'};}
 function loadDB(){
-  let db=JSON.parse(localStorage.getItem(DB_KEY)||'null'); if(db) return db;
-  const old=JSON.parse(localStorage.getItem('mapa_proyecto_v1')||'null');
-  const oldRm=JSON.parse(localStorage.getItem('mapa_roadmap_v1')||'{}');
+  let db=null;
+  try{db=JSON.parse(localStorage.getItem(DB_KEY)||'null');}catch(_){db=null;}
+  if(db) return db;
+  let old=null,oldRm={};
+  try{old=JSON.parse(localStorage.getItem('mapa_proyecto_v1')||'null');}catch(_){}
+  try{oldRm=JSON.parse(localStorage.getItem('mapa_roadmap_v1')||'{}')||{};}catch(_){oldRm={};}
   db={activeId:null,projects:{}};
   if(old){const id=uid();const f=blankFields();FIELDS.forEach(k=>{if(old[k]!==undefined)f[k]=old[k];});
     db.projects[id]={name:truncName(old.que||'Mi primer proyecto'),createdAt:Date.now(),fields:f,roadmap:oldRm,notes:'',generated:!!old.que};db.activeId=id;}
@@ -252,7 +273,7 @@ document.getElementById('delBtn').addEventListener('click',()=>{if(projCount()<=
 document.getElementById('newProjBtn2').addEventListener('click',()=>{newProject();loadForm();renderSwitch();refreshChrome();renderDashboard();});
 document.getElementById('newProjBtn').addEventListener('click',()=>{newProject();renderDashboard();go('proyecto');});
 
-function projProgress(p){const total=PHASES.reduce((a,ph)=>a+ph.tasks.length,0);const done=Object.values(p.roadmap||{}).filter(Boolean).length;return {done,total,pct:Math.round(done/total*100)};}
+function projProgress(p){const total=PHASES.reduce((a,ph)=>a+ph.tasks.length,0);const rm=p.roadmap||{};let done=0;PHASES.forEach((ph,i)=>ph.tasks.forEach((_,j)=>{if(rm[`p${i}_${j}`])done++;}));return {done,total,pct:total?Math.round(done/total*100):0};}
 // color del nivel de seguridad — único lugar donde viven los umbrales (dashboard, inicio y reporte lo comparten)
 function secColor(sa){return sa.crit?'var(--bad)':sa.pct>=80?'var(--ok)':'var(--warn)';}
 // recorta nombres largos en una palabra completa y con elipsis (evita "…apunta los libros q")
@@ -263,7 +284,7 @@ function renderDashboard(){
     const pr=projProgress(p);const cur=id===DB.activeId;const ty=detectType(p.fields);
     const sa=p.secAudit;
     const secCol=sa?secColor(sa):'var(--ink-dim)';
-    const secPill=sa?`<span class="secpill" style="color:${secCol};border-color:${secCol}" title="Última auditoría de seguridad${sa.repo?' de '+esc(sa.repo):''}">${ic('shield')} Seguridad ${sa.pct}%${sa.crit?' · '+sa.crit+' crítico'+(sa.crit>1?'s':''):''}</span>`:'';
+    const secPill=sa?`<span class="secpill" style="color:${secCol};border-color:${secCol}" title="Última auditoría de seguridad${sa.repo?' de '+escAttr(sa.repo):''}">${ic('shield')} Seguridad ${sa.pct}%${sa.crit?' · '+sa.crit+' crítico'+(sa.crit>1?'s':''):''}</span>`:'';
     return `<div class="pjcard ${cur?'cur':''}">${cur?'<span class="curtag">● ACTIVO</span>':''}
       <h3>${esc(p.name)}</h3>
       <div class="meta">${ty.e} ${ty.label} · creado ${new Date(p.createdAt).toLocaleDateString('es')} · ${p.generated?'mapa generado':'sin mapa aún'}</div>
@@ -291,20 +312,31 @@ function sanitizeProject(p){if(p&&p.secAudit&&(typeof p.secAudit.pct!=='number'|
 document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
 document.getElementById('importFile').addEventListener('change',e=>{
   const file=e.target.files[0];if(!file)return;const r=new FileReader();
-  r.onload=()=>{try{
-    const data=JSON.parse(r.result);
-    if(!data.projects)throw 0;
-    const mode=confirm('Aceptar = AÑADIR estos proyectos a los tuyos.\nCancelar = REEMPLAZAR todo por el respaldo.');
-    if(mode){let n=0;for(const id in data.projects){const nid=DB.projects[id]?uid():id;DB.projects[nid]=sanitizeProject(data.projects[id]);n++;}showToast(n+' proyecto(s) añadidos ✓');}
-    else{DB=data;ensureProject();Object.values(DB.projects).forEach(sanitizeProject);showToast('Respaldo restaurado ✓');}
-    saveDB();renderSwitch();loadForm();refreshChrome();renderDashboard();
-  }catch(_){showToast('Archivo no válido');}e.target.value='';};
+  r.onload=()=>{
+    try{
+      const data=JSON.parse(r.result);
+      if(!data.projects)throw 0;
+      const n=Object.keys(data.projects).length;
+      const add=confirm(`Encontré ${n} proyecto(s) en el respaldo.\n\nAceptar = AÑADIRLOS a tus proyectos actuales (no borra nada).\nCancelar = ver la opción de reemplazar todo.`);
+      if(add){
+        let c=0;for(const id in data.projects){const nid=DB.projects[id]?uid():id;DB.projects[nid]=sanitizeProject(data.projects[id]);c++;}
+        showToast(c+' proyecto(s) añadidos ✓');
+      }else{
+        if(!confirm('⚠️ REEMPLAZAR borra TODOS tus proyectos actuales y los cambia por los del respaldo.\n\n¿Seguro que quieres reemplazar? (Cancelar = no hacer nada)')){
+          showToast('Importación cancelada');e.target.value='';return;
+        }
+        DB=data;ensureProject();Object.values(DB.projects).forEach(sanitizeProject);showToast('Respaldo restaurado ✓');
+      }
+      saveDB();renderSwitch();loadForm();refreshChrome();renderDashboard();
+    }catch(_){showToast('Archivo no válido');}
+    e.target.value='';
+  };
   r.readAsText(file);
 });
 
 /* ===== formulario + notas ===== */
 function loadForm(){
-  const f=active().fields;FIELDS.forEach(k=>{const el=document.getElementById('f_'+k);if(el)el.value=f[k];});
+  const f=active().fields||{};FIELDS.forEach(k=>{const el=document.getElementById('f_'+k);if(el)el.value=f[k]??'';});
   document.getElementById('f_notes').value=active().notes||'';
   if(active().generated&&f.que){generate(true);}else{document.getElementById('projOut').classList.remove('show');}
 }
@@ -405,7 +437,7 @@ function renderCost(v,be){
   return `<table class="cost"><tr><th>Concepto</th><th>Qué es</th><th>Costo aprox.</th></tr>
     ${rows.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}
     <tr class="tot"><td>${ic('wallet')} Para empezar y probar</td><td>Casi todo tiene plan gratis</td><td>$0 / mes</td></tr>
-    <tr class="tot"><td>${ic('trending')} Si crece</td><td>Pagas solo cuando tienes uso/usuarios</td><td>~$${minMo}–${maxMo||25} / mes</td></tr></table>
+    <tr class="tot"><td>${ic('trending')} Si crece</td><td>Pagas solo cuando tienes uso/usuarios</td><td>${maxMo?('~$'+minMo+'–'+maxMo+' / mes'):'$0 / mes'}</td></tr></table>
     ${oneTime?`<p class="hint" style="margin-top:10px">${oneTime}. Un dominio propio es opcional (~$10–15/año); sin él, tu app igual vive gratis en una dirección tipo <code>mi-app.vercel.app</code>.</p>`:'<p class="hint" style="margin-top:10px">Un dominio propio es opcional; sin él, tu app vive gratis en una dirección tipo <code>mi-app.vercel.app</code>.</p>'}
     <div class="callout" style="margin-top:14px"><b>Sé realista, no solo es dinero:</b> lo que más "cuesta" al empezar es <b>tu tiempo</b> y la <b>curva de aprendizaje</b>. La herramienta de IA que te ayuda a construir (como Claude) suele tener un costo mensual; los servicios gratis tienen <b>límites</b> y empiezan a cobrar cuando creces. Empieza pequeño, aprende, y paga solo cuando tu app lo justifique.</div>`;
 }
@@ -591,15 +623,18 @@ function renderPhases(){
       <details class="acc" ${isNext||(i===0&&!next)?'open':''}><summary>${p.icon} ${p.name} <span class="ph-prog">${dn}/${p.tasks.length}</span><span class="chev">›</span></summary>
       <div class="acc-body"><p style="margin-top:10px">${p.intro}</p>${v.que?phaseAdvice(i,ty,v):''}${tasks}</div></details></div>`;
   }).join('');
-  phasesEl.querySelectorAll('[data-task]').forEach(c=>c.addEventListener('change',()=>{active().roadmap[c.dataset.task]=c.checked;saveDB();renderPhases();}));
+  phasesEl.querySelectorAll('[data-task]').forEach(c=>c.addEventListener('change',()=>{
+    const openIdx=[...phasesEl.querySelectorAll('details.acc')].map(d=>d.open);
+    active().roadmap[c.dataset.task]=c.checked;saveDB();renderPhases();
+    // restaura los acordeones que el usuario tenía abiertos (renderPhases reconstruye el HTML)
+    phasesEl.querySelectorAll('details.acc').forEach((d,i)=>{if(openIdx[i]!=null)d.open=openIdx[i];});
+  }));
   updateProg();
 }
 function updateProg(){
   const pr=projProgress(active());
-  ['rmProg','globalProg'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.width=pr.pct+'%';});
+  const rp=document.getElementById('rmProg');if(rp)rp.style.width=pr.pct+'%';
   const rt=document.getElementById('rmProgTxt');if(rt)rt.textContent=`${pr.done} de ${pr.total} pasos completados (${pr.pct}%)`;
-  const gt=document.getElementById('globalProgTxt');
-  if(gt)gt.textContent=pr.pct===0?`"${active().name}" — aún sin pasos completados.`:pr.pct===100?`¡"${active().name}" completó toda la ruta!`:`"${active().name}": ${pr.pct}% del camino. ¡Sigue así!`;
   renderHome();
 }
 /* Inicio: tarjeta dinámica de "tu siguiente paso" según el proyecto activo */
@@ -726,11 +761,6 @@ function applyLinks(ctx,checks){
   if(lk.backend) mark(c=>/backend \/ base de datos/i.test(c.label),'enlace');
   return checks;
 }
-function checkLive(url,elId){
-  // best-effort: no-cors no deja leer el estado, pero si resuelve, el sitio respondió algo
-  fetch(url,{mode:'no-cors'}).then(()=>{const e=document.getElementById(elId);if(e){e.textContent='· respondió';e.className='live ok';}})
-    .catch(()=>{const e=document.getElementById(elId);if(e){e.textContent='· no pude comprobar (ábrelo tú)';e.className='live bad';}});
-}
 const LINK_DEFS=[
   {key:'deploy',label:'App publicada (deploy)',ph:'https://mi-app.vercel.app',hint:'Vercel, Netlify, tu dominio…'},
   {key:'backend',label:'Backend / base de datos',ph:'https://xxxx.supabase.co',hint:'Supabase, Firebase, tu API…'},
@@ -740,7 +770,7 @@ function linksCardHtml(ctx){
   const lk=linksFor(ctx.name);
   return LINK_DEFS.map(d=>{
     const v=lk[d.key]||'';
-    const live=v?`<span class="live" id="live_${d.key}">comprobando…</span>`:'';
+    const live=v?`<span class="live">· ábrelo para confirmar</span>`:'';
     const open=v?`<a class="btn ghost sm" href="${escAttr(v)}" target="_blank" rel="noopener">${ic('upload')} Abrir</a>`:'';
     return `<div class="linkrow">
       <label>${d.label} <span style="color:var(--ink-dim);font-weight:400">— ${d.hint}</span></label>
@@ -1028,7 +1058,8 @@ async function analyzeRepo(){
     const pkgTxt=await ghText(pr.owner,pr.repo,branch,'package.json');
     let pkg=null;try{pkg=pkgTxt?JSON.parse(pkgTxt):null;}catch(_){}
     const depNames=pkg?Object.keys(Object.assign({},pkg.dependencies,pkg.devDependencies)).map(d=>d.toLowerCase()):[];
-    const dep=n=>depNames.some(d=>d.includes(n));
+    // coincide solo en frontera de palabra (evita que "preact" cuente como "react"); el carácter previo no debe ser alfanumérico
+    const dep=n=>depNames.some(d=>{const i=d.indexOf(n);return i>=0&&!/[a-z0-9]/.test(d[i-1]||'');});
     const gitignore=await ghText(pr.owner,pr.repo,branch,'.gitignore');
     const readme=await ghText(pr.owner,pr.repo,branch,'README.md')||await ghText(pr.owner,pr.repo,branch,'readme.md');
     // --- análisis más minucioso: leemos archivos clave para no adivinar ---
@@ -1120,7 +1151,7 @@ function deviceRoadmaps(ctx){
       s.native?'Tienes base nativa: falta generar el .aab firmado.':'Falta empaquetarla (TWA desde PWA, o Capacitor).',
       '"Guíame para empaquetar mi app para Google Play (.aab) y dime qué necesito, paso a paso."'),
     step('Publicada en Google Play', no,
-      'No puedo verificar la publicación en la tienda desde el repo (hazlo tú y márcalo).',
+      'No puedo verificar la publicación en la tienda desde el repo; confírmalo abriendo tu ficha en Google Play.',
       '"Guíame para crear la cuenta de Google Play Developer (US$25) y publicar mi app: ficha, capturas y envío a revisión."'),
   ]};
 
@@ -1138,7 +1169,7 @@ function deviceRoadmaps(ctx){
       s.native?'Tienes base nativa: falta el build firmado (requiere Mac/Xcode).':'Falta envolverla (Capacitor) para la App Store; necesitarás una Mac.',
       '"Quiero llevar mi app a la App Store con Capacitor. Explícame qué necesito (Mac, Xcode, cuenta Apple) y guíame paso a paso."'),
     step('Publicada en la App Store', no,
-      'No puedo verificar la publicación desde el repo (hazlo tú y márcalo).',
+      'No puedo verificar la publicación desde el repo; confírmalo abriendo tu ficha en la App Store.',
       '"Guíame para crear la cuenta Apple Developer (US$99/año) y publicar mi app en la App Store: build, ficha y revisión."'),
   ]};
 
@@ -1400,10 +1431,6 @@ function renderReport(ctx,checks){
     inp.addEventListener('blur',commit);
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}});
   });
-  // comprobación de vida best-effort de los enlaces guardados
-  const lk=linksFor(ctx.name);
-  if(lk.deploy) checkLive(lk.deploy,'live_deploy');
-  if(lk.backend) checkLive(lk.backend,'live_backend');
 }
 function applyAnalysisToRoadmap(){
   if(!LAST_AN)return;
@@ -1438,13 +1465,13 @@ function renderGhConnect(box){
     box.innerHTML=`<h3>${ic('git')} Conecta tu GitHub <span class="tag2">opcional</span></h3>
       <p style="font-size:13px;margin:4px 0 0">Conéctate para elegir tus repos de una lista (incluye privados) sin pegar enlaces, y subir el límite de consultas a GitHub. Tu token se guarda <b>solo en este navegador</b>; nada pasa por ningún servidor.</p>
       <ol style="font-size:12.5px;color:var(--ink-soft);margin:10px 0 12px;padding-left:18px">
-        <li>Abre <a href="https://github.com/settings/tokens/new?description=Mapa+de+Apps&scopes=repo" target="_blank" rel="noopener">github.com/settings/tokens ↗</a> (te llevo con el permiso justo de solo lectura).</li>
-        <li>Elige una expiración, pulsa <b>Generate token</b> y cópialo.</li>
-        <li>Pégalo aquí y pulsa Conectar.</li>
+        <li>Abre <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings → tokens (fine-grained) ↗</a>.</li>
+        <li>En <b>Repository access</b> elige tus repos (o todos) y en <b>Permissions → Repository → Contents</b> ponlo en <b>Read-only</b>.</li>
+        <li>Pulsa <b>Generate token</b>, cópialo, pégalo aquí y pulsa Conectar.</li>
       </ol>
-      <input class="gh-token-input" type="password" autocomplete="off" placeholder="ghp_… o github_pat_…">
+      <input class="gh-token-input" type="password" autocomplete="off" placeholder="github_pat_… (o ghp_…)">
       <div class="row" style="margin-top:12px"><button class="btn gh-connect-btn"><span class="i">${ic('check')}</span> Conectar</button></div>
-      <p class="hint" style="margin-top:8px">Solo lectura. Puedes revocarlo cuando quieras desde GitHub o con "Desconectar".</p>`;
+      <p class="hint" style="margin-top:8px">Con permiso de <b>solo lectura</b> de contenido. Puedes revocarlo cuando quieras desde GitHub o con "Desconectar".</p>`;
     box.querySelector('.gh-connect-btn').addEventListener('click',()=>ghConnect(box));
     box.querySelector('.gh-token-input').addEventListener('keydown',e=>{if(e.key==='Enter')ghConnect(box);});
   }else{
@@ -1630,7 +1657,7 @@ async function auditSecurity(){
     const ctx={pr,meta,paths,has,gitignore,pkg,deps,findings,scannedCount:scanned.length,name:pr.owner+'/'+pr.repo};
     renderSecReport(ctx);
   }catch(e){
-    const msg=e.message==='404'?'No encontré ese repositorio (¿es público?).':e.message==='rate'?'GitHub me limitó por muchas consultas. Espera unos minutos.':'No pude auditarlo. Revisa el enlace.';
+    const msg=e.message==='auth'?'Tu token de GitHub no es válido o expiró. Vuelve a conectar tu GitHub arriba.':e.message==='404'?('No encontré ese repositorio (¿es público?).'+(ghToken()?'':' Si es privado, conecta tu GitHub arriba.')):e.message==='rate'?('GitHub me limitó por muchas consultas.'+(ghToken()?' Espera unos minutos.':' Conecta tu GitHub arriba para subir el límite.')):'No pude auditarlo. Revisa el enlace.';
     box.innerHTML=`<div class="card"><div class="miss"><b>Ups.</b> ${msg}</div></div>`;
   }
 }
@@ -1638,7 +1665,7 @@ function secChecks(ctx){
   const {has,gitignore,deps,findings,pkg}=ctx;
   const C=[];
   const P=(label,status,evidence,sev,fix)=>C.push({label,status,evidence,sev,fix});
-  const depHas=n=>Object.keys(deps).some(d=>d.toLowerCase().includes(n));
+  const depHas=n=>Object.keys(deps).some(d=>{d=d.toLowerCase();const i=d.indexOf(n);return i>=0&&!/[a-z0-9]/.test(d[i-1]||'');});
   const usesAI=depHas('openai')||depHas('@anthropic')||depHas('anthropic')||depHas('@google/genai')||depHas('replicate')||depHas('cohere')||depHas('langchain');
   const usesBackend=depHas('express')||depHas('fastify')||depHas('next')||has(/\/api\//)||depHas('supabase')||depHas('firebase')||depHas('flask')||depHas('django')||depHas('fastapi');
   // exige una entrada real para .env (.env, .env*, *.env); ".env.example" solo NO protege el .env
@@ -1719,7 +1746,6 @@ function secFix(fix){
   if(!fix||!fix.length)return '';
   return `<div class="fixbox"><div class="fh">${ic('tool')} Cómo corregirlo · opciones</div>${fix.map(o=>`<div class="popt">${fixOptHead(o)}${o.steps?`<ol class="steps">${o.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}<div class="ex"><span class="exl">Prompt para Claude<button class="iconbtn copytext" data-copytext="${escAttr(o.prompt)}" title="Copiar prompt">${ic('copy')}</button></span>${esc(o.prompt)}</div></div>`).join('')}</div>`;
 }
-let LAST_SEC=null;
 function renderSecReport(ctx){
   const checks=secChecks(ctx);
   const crit=checks.filter(c=>c.status==='missing'&&(c.sev==='critico'||c.sev==='alto'));
@@ -1727,9 +1753,9 @@ function renderSecReport(ctx){
   let s=0,t=0;checks.forEach(c=>{if(w[c.status]===null)return;t++;s+=w[c.status];});
   const pct=t?Math.round(s/t*100):100;
   const lvl={t:crit.length?'Riesgo alto — corrige lo crítico ya':pct>=80?'Buena base de seguridad':'Mejorable — revisa los puntos',c:secColor({crit:crit.length,pct})};
-  LAST_SEC={name:ctx.name,pct,crit:crit.length};
-  // guarda el resultado en el proyecto activo para mostrarlo en "Mis proyectos"
-  if(typeof active==='function'&&active()){active().secAudit={pct,crit:crit.length,repo:ctx.name,at:Date.now()};saveDB();}
+  // guarda el resultado en el proyecto activo para mostrarlo en "Mis proyectos",
+  // pero sin pisar la auditoría de OTRO repo (evita atribuir a "Mi tienda" el % de un repo ajeno)
+  if(typeof active==='function'&&active()){const a=active();if(!a.secAudit||a.secAudit.repo===ctx.name){a.secAudit={pct,crit:crit.length,repo:ctx.name,at:Date.now()};saveDB();}}
   const ord=[...checks].sort((a,b)=>(SEV_ORDER[a.sev]??9)-(SEV_ORDER[b.sev]??9));
   document.getElementById('secResult').innerHTML=`
    <div class="card"><div class="score-ring">
@@ -1847,7 +1873,8 @@ renderSwitch();loadForm();refreshChrome();renderPhases();renderDashboard();rende
 
 /* ===== preferencias de apariencia (sección Ajustes) ===== */
 const PREF_DEFAULTS={accent:'violeta',glow:'normal',railIc:'normal',railMode:'hover',fontZoom:'normal',inkTone:'neutro',inkContrast:'normal'};
-const PREF_ACCENTS={violeta:[139,92,246],cian:[6,182,212],verde:[16,185,129],ambar:[245,158,11],rosa:[236,72,153]};
+// tonos elegidos para que el texto blanco de los botones tenga contraste suficiente (verde/ámbar oscurecidos)
+const PREF_ACCENTS={violeta:[139,92,246],cian:[6,182,212],verde:[5,150,105],ambar:[217,119,6],rosa:[236,72,153]};
 const PREF_GLOWS={apagado:0,suave:.2,normal:.35,fuerte:.55};
 const PREF_RAIL_IC={pequeno:'15px',normal:'17px',grande:'19px'};
 const PREF_ZOOMS={compacto:.92,normal:1,grande:1.1};
@@ -1918,7 +1945,9 @@ function renderAjustes(){
   sec.querySelectorAll('[data-pref]').forEach(b=>{
     const k=b.dataset.pref;
     const cur=k==='theme'?document.documentElement.dataset.theme:p[k];
-    b.classList.toggle('on',b.dataset.val===cur);
+    const on=b.dataset.val===cur;
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-pressed',on?'true':'false');
   });
 }
 (function(){
@@ -1957,7 +1986,8 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 
 /* ===== atajos de teclado (escritorio) ===== */
 (function(){
-  const order=pages.map(p=>p.id);
+  // sigue el orden del menú (no el del DOM), para que ]/[ coincidan con lo que ve el usuario
+  const order=[...document.querySelectorAll('#nav .nav-b')].map(b=>b.dataset.go);
   const curIdx=()=>{const on=document.querySelector('.page.on');return on?Math.max(0,order.indexOf(on.id)):0;};
   const goIdx=i=>go(order[(i+order.length)%order.length]);
   function toggleHelp(){

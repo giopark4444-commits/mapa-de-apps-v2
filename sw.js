@@ -1,7 +1,7 @@
 /* Service worker de Mapa de Apps · estrategia network-first para contenido propio,
    con caché de respaldo para uso offline. La API de GitHub y recursos externos
    van siempre a la red (no se cachean). */
-const CACHE = 'mapa-apps-v1';
+const CACHE = 'mapa-apps-v2';
 const CORE = [
   './',
   './index.html',
@@ -37,10 +37,18 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     fetch(req)
       .then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        // solo cacheamos respuestas correctas (no un 404/500, que envenenaría la caché)
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+        }
         return res;
       })
-      .catch(() => caches.match(req).then(hit => hit || caches.match('./index.html')))
+      .catch(() => caches.match(req).then(hit => {
+        if (hit) return hit;
+        // sin red y sin caché: solo las navegaciones caen al index; un asset suelto NO recibe HTML
+        if (req.mode === 'navigate') return caches.match('./index.html');
+        return new Response('', { status: 504, statusText: 'Sin conexión' });
+      }))
   );
 });

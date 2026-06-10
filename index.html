@@ -4,12 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Mapa de Apps · Tu copiloto de vibecoding</title>
+<meta name="description" content="Tu mapa y traductor entre ideas y código: planea, construye y publica tu app con la ayuda de Claude, sin saber programar.">
+<meta property="og:title" content="Mapa de Apps · Tu copiloto de vibecoding">
+<meta property="og:description" content="De la idea a la app, sin perderte en el camino. Stack recomendado, costos, roadmap y prompts para Claude.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="icon-512.png">
+<meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#08090b" id="theme-color-meta">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mapa de Apps">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -115,51 +122,51 @@
 
       <div class="card">
         <div class="form-sec">Lo esencial</div>
-        <label>1 · ¿Qué hace tu app, en una frase? <span style="color:var(--bad)">*</span></label>
+        <label for="f_que">1 · ¿Qué hace tu app, en una frase? <span style="color:var(--bad)">*</span></label>
         <input id="f_que" placeholder="Ej: una app donde la gente apunta los libros que leyó y les pone nota">
         <div class="hint">Habla como se lo contarías a un amigo. (Esto también ayuda a detectar tu tipo de app.)</div>
-        <label>2 · ¿Qué problema resuelve o por qué la haces?</label>
+        <label for="f_problema">2 · ¿Qué problema resuelve o por qué la haces?</label>
         <input id="f_problema" placeholder="Ej: olvido qué libros ya leí y cuáles me gustaron">
         <div class="hint">Tener claro el "para qué" evita construir cosas que no sirven.</div>
-        <label>3 · ¿Quién la va a usar?</label>
+        <label for="f_quien">3 · ¿Quién la va a usar?</label>
         <input id="f_quien" placeholder="Ej: yo y mis amigos lectores / clientes de mi negocio / cualquiera">
 
         <div class="form-sec">Cómo debe funcionar</div>
         <div class="grid g2">
-          <div><label>4 · ¿Dónde la quieres usar?</label>
+          <div><label for="f_donde">4 · ¿Dónde la quieres usar?</label>
             <select id="f_donde"><option value="web">En el navegador (web)</option><option value="movil">En el celular (app móvil)</option><option value="ambos">En ambos</option><option value="nose">No estoy seguro</option></select></div>
-          <div><label>5 · ¿Necesita guardar información?</label>
+          <div><label for="f_datos">5 · ¿Necesita guardar información?</label>
             <select id="f_datos"><option value="no">No, solo muestra/calcula</option><option value="local">Sí, solo en mi dispositivo</option><option value="nube">Sí, varias personas y desde cualquier lado</option></select></div>
         </div>
         <div class="grid g2">
-          <div><label>6 · ¿Necesita iniciar sesión (cuentas)?</label>
+          <div><label for="f_login">6 · ¿Necesita iniciar sesión (cuentas)?</label>
             <select id="f_login"><option value="no">No</option><option value="si">Sí, usuario y contraseña</option><option value="nose">No lo sé todavía</option></select></div>
-          <div><label>7 · ¿Qué tan grande la imaginas?</label>
+          <div><label for="f_escala">7 · ¿Qué tan grande la imaginas?</label>
             <select id="f_escala"><option value="hobby">Pequeña / personal</option><option value="negocio">Negocio / varios usuarios</option><option value="grande">Grande / quiero que crezca</option></select></div>
         </div>
-        <label>8 · Funciones que imaginas (las que quieras)</label>
+        <label for="f_func">8 · Funciones que imaginas (las que quieras)</label>
         <textarea id="f_func" placeholder="Ej: lista, buscador, subir fotos, notificaciones, compartir, chat en tiempo real, pagos..."></textarea>
-        <label>9 · ¿Conecta con servicios externos? <span style="color:var(--ink-dim)">(opcional)</span></label>
+        <label for="f_integraciones">9 · ¿Conecta con servicios externos? <span style="color:var(--ink-dim)">(opcional)</span></label>
         <input id="f_integraciones" placeholder="Ej: pagos (Stripe), mapas, enviar correos, login con Google, IA...">
         <div class="hint">Las "integraciones" son servicios de terceros que tu app usa. Saberlo desde el inicio ahorra rehacer.</div>
-        <label>10 · ¿Maneja datos delicados?</label>
+        <label for="f_sensibles">10 · ¿Maneja datos delicados?</label>
         <select id="f_sensibles"><option value="no">No</option><option value="personales">Sí, datos personales (nombres, correos, direcciones)</option><option value="pagos">Sí, pagos o datos financieros</option><option value="salud">Sí, salud u otros datos muy sensibles</option></select>
         <div class="hint">Esto cambia las medidas de seguridad y privacidad necesarias.</div>
 
         <details class="form-collapse">
         <summary class="form-sec">Diseño y contexto <span class="form-sec-opt">opcional</span> <span class="chev">›</span></summary>
         <div class="grid g2">
-          <div><label>11 · Estilo visual que te gusta</label>
+          <div><label for="f_estilo">11 · Estilo visual que te gusta</label>
             <select id="f_estilo"><option value="auto">Que Claude proponga</option><option value="minimal">Minimalista y limpio</option><option value="moderno">Moderno / tech</option><option value="colorido">Colorido y divertido</option><option value="elegante">Elegante / premium</option><option value="corporativo">Serio / corporativo</option></select></div>
-          <div><label>12 · ¿Cómo se sostiene? <span style="color:var(--ink-dim)">(opcional)</span></label>
+          <div><label for="f_monetiza">12 · ¿Cómo se sostiene? <span style="color:var(--ink-dim)">(opcional)</span></label>
             <select id="f_monetiza"><option value="no">No aplica / proyecto personal</option><option value="gratis">Gratis (sin cobrar)</option><option value="pago-unico">Pago único</option><option value="suscripcion">Suscripción mensual</option><option value="anuncios">Anuncios</option><option value="comision">Comisión por venta</option></select></div>
         </div>
-        <label>13 · Apps o webs que te gustan como referencia <span style="color:var(--ink-dim)">(opcional)</span></label>
+        <label for="f_inspiracion">13 · Apps o webs que te gustan como referencia <span style="color:var(--ink-dim)">(opcional)</span></label>
         <input id="f_inspiracion" placeholder="Ej: me gusta cómo se ve Notion / la simpleza de Apple Notes">
         <div class="grid g2">
-          <div><label>14 · Presupuesto</label>
+          <div><label for="f_presupuesto">14 · Presupuesto</label>
             <select id="f_presupuesto"><option value="gratis">Solo herramientas gratis</option><option value="poco">Poco (unos pocos US$/mes)</option><option value="flexible">Flexible si vale la pena</option></select></div>
-          <div><label>15 · ¿Para cuándo lo quieres?</label>
+          <div><label for="f_plazo">15 · ¿Para cuándo lo quieres?</label>
             <select id="f_plazo"><option value="sin-prisa">Sin prisa / aprendiendo</option><option value="semanas">En unas semanas</option><option value="pronto">Lo antes posible</option></select></div>
         </div>
         </details>
@@ -170,7 +177,7 @@
       <div class="card">
         <h3><span class="i"><svg viewBox="0 0 24 24"><path d="M6 3.5h8L19 8v12.5H6z"/><path d="M14 3.5V8h5"/><path d="M9 13h6M9 16.5h4"/></svg></span>Notas del proyecto</h3>
         <p style="font-size:12.5px;margin:0 0 4px">Apunta ideas, links, decisiones o lo que Claude te explique. Se guarda solo, en este proyecto.</p>
-        <textarea id="f_notes" style="min-height:120px" placeholder="Ej: Claude me recomendó empezar por la pantalla de lista. Pendiente: decidir colores. Link al diseño: ..."></textarea>
+        <textarea id="f_notes" aria-label="Notas del proyecto" style="min-height:120px" placeholder="Ej: Claude me recomendó empezar por la pantalla de lista. Pendiente: decidir colores. Link al diseño: ..."></textarea>
       </div>
 
       <div class="out" id="projOut">
@@ -212,7 +219,7 @@
       <div id="anGithub">
         <div class="card" id="ghConnect"></div>
         <div class="card">
-          <label>Enlace del repositorio</label>
+          <label for="anUrl">Enlace del repositorio</label>
           <input id="anUrl" placeholder="https://github.com/usuario/mi-proyecto">
           <div class="hint">Pega un enlace de GitHub (o <code>usuario/repo</code>), o conéctate arriba para elegir de tu lista. Repos públicos sin conectar; públicos y privados al conectar.</div>
           <div class="row" style="margin-top:14px"><button class="btn" id="anBtn"><span class="i"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20.5 20.5 16.5 16.5"/></svg></span> Analizar repositorio</button><button class="btn ghost" id="anSaveBtn"><span class="i"><svg viewBox="0 0 24 24"><path d="M6 4.5h9L18.5 8v11.5H6z"/><path d="M9 4.5V9h6"/><rect x="9" y="13" width="6" height="6.5"/></svg></span> Guardar enlace</button></div>
@@ -243,7 +250,7 @@
       <div id="secAuditar">
         <div class="card" id="ghConnectSec"></div>
         <div class="card">
-          <label>Enlace del repositorio</label>
+          <label for="secUrl">Enlace del repositorio</label>
           <input id="secUrl" placeholder="https://github.com/usuario/mi-proyecto">
           <div class="hint">Pega un enlace de GitHub (o <code>usuario/repo</code>), o conéctate arriba para elegir de tu lista. Reviso el código en busca de secretos filtrados, dependencias riesgosas y prácticas inseguras. Solo lectura; no modifico nada.</div>
           <div class="row" style="margin-top:14px"><button class="btn" id="secBtn"><span class="i"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 6.5-7 9-4-2.5-7-5-7-9V6z"/><path d="M9.5 12l1.8 1.8 3.5-3.6"/></svg></span> Auditar seguridad</button></div>
@@ -295,7 +302,7 @@
       <div class="eyebrow"><b>09</b> / Traductor</div>
       <h1>Diccionario sin tecnicismos</h1>
       <p class="lead">Cada palabra rara explicada con una analogía de la vida real.</p>
-      <div class="search"><input id="dictSearch" placeholder="Busca un término..."></div>
+      <div class="search"><input id="dictSearch" aria-label="Buscar término en el diccionario" placeholder="Busca un término..."></div>
       <div class="grid g2" id="dictGrid"></div>
       <p id="dictEmpty" style="display:none;color:var(--ink-dim)">No lo encontré. Pídeselo a Claude: "explícame qué es ___ como si tuviera 10 años".</p>
     </section>
@@ -335,8 +342,8 @@
         <div class="segrow">
           <button class="sw" data-pref="accent" data-val="violeta" style="--sw:#8b5cf6" title="Violeta"></button>
           <button class="sw" data-pref="accent" data-val="cian" style="--sw:#06b6d4" title="Cian"></button>
-          <button class="sw" data-pref="accent" data-val="verde" style="--sw:#10b981" title="Verde"></button>
-          <button class="sw" data-pref="accent" data-val="ambar" style="--sw:#f59e0b" title="Ámbar"></button>
+          <button class="sw" data-pref="accent" data-val="verde" style="--sw:#059669" title="Verde"></button>
+          <button class="sw" data-pref="accent" data-val="ambar" style="--sw:#d97706" title="Ámbar"></button>
           <button class="sw" data-pref="accent" data-val="rosa" style="--sw:#ec4899" title="Rosa"></button>
         </div>
         <label>Intensidad del glow</label>
@@ -361,7 +368,7 @@
     </section>
   </main>
 </div>
-<div class="toast" id="toast">Copiado ✓</div>
+<div class="toast" id="toast" role="status" aria-live="polite">Copiado ✓</div>
 
 <script src="app.js"></script>
 <!-- Analítica de Vercel (visitas + velocidad). Mismo origen, compatible con el CSP.
